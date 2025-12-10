@@ -18,6 +18,7 @@ from rich.progress import (
 from rich.table import Table
 
 from . import __version__
+from .run import run_tui_with_pipeline
 from .tui_delta import (
     TuiDelta,
 )
@@ -260,7 +261,9 @@ def print_stats(processor: TuiDelta) -> None:
         return
 
     # Create stats table
-    table = Table(title="TEMPLATE_PLACEHOLDER Statistics", show_header=True, header_style="bold cyan")
+    table = Table(
+        title="TEMPLATE_PLACEHOLDER Statistics", show_header=True, header_style="bold cyan"
+    )
     table.add_column("Metric", style="cyan", no_wrap=True)
     table.add_column("Value", justify="right", style="green")
 
@@ -284,6 +287,82 @@ def print_stats_json(processor: TuiDelta) -> None:
 
     # Print to stderr (console already configured for stderr)
     print(json.dumps(output, indent=2), file=sys.stderr)
+
+
+@app.command()
+def run(
+    command: list[str] = typer.Argument(
+        ...,
+        help="TUI command to run (e.g., 'claude code' or 'npm test')",
+    ),
+    profile: Optional[str] = typer.Option(
+        None,
+        "--profile",
+        "-p",
+        help="Clear rules profile (claude_code, generic, minimal, or custom)",
+    ),
+    rules_file: Optional[Path] = typer.Option(
+        None,
+        "--rules-file",
+        help="Path to custom clear_rules.yaml file",
+        exists=True,
+        dir_okay=False,
+    ),
+) -> None:
+    """
+    Run a TUI application with real-time delta processing.
+
+    Wraps the TUI application to capture all terminal output, processes it through
+    the pipeline, and outputs processed deltas to stdout.
+
+    The TUI displays and operates normally - the user can interact with it as if
+    it weren't wrapped. Meanwhile, the processed output streams to stdout in real-time.
+
+    \b
+    Examples:
+        # Run claude code and save processed deltas
+        tui-delta run -- claude code > session-deltas.txt
+
+        # Use a specific profile
+        tui-delta run --profile generic -- npm test > test-deltas.txt
+
+        # Use custom rules
+        tui-delta run --rules-file my-rules.yaml -- ./myapp
+
+    \b
+    Pipeline:
+        clear_lines → consolidate → uniqseq → cut → uniqseq
+    """
+    exit_code = run_tui_with_pipeline(
+        command=command,
+        profile=profile,
+        rules_file=rules_file,
+    )
+    raise typer.Exit(exit_code)
+
+
+@app.command(name="list-profiles")
+def list_profiles_cmd(
+    rules_file: Optional[Path] = typer.Option(
+        None,
+        "--rules-file",
+        help="Path to custom clear_rules.yaml file",
+        exists=True,
+        dir_okay=False,
+    ),
+) -> None:
+    """
+    List available clear rules profiles.
+
+    Shows all available profiles from the default clear_rules.yaml
+    or a custom rules file.
+    """
+    from .clear_rules import ClearRules
+
+    profiles = ClearRules.list_profiles(rules_file)
+    console.print("[bold]Available profiles:[/bold]")
+    for name, description in profiles.items():
+        console.print(f"  [cyan]{name}[/cyan]: {description}")
 
 
 if __name__ == "__main__":

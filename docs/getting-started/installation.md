@@ -6,7 +6,7 @@
 
 ## Requirements
 
-- **Python PYTHON_VERSION_MIN_KICKOFF or higher** (for pip/pipx installations)
+- **Python 3.9 or higher** (for pip/pipx installations)
 - **Homebrew** (for macOS/Linux Homebrew installation)
 
 `tui-delta` works on Linux, macOS, and Windows.

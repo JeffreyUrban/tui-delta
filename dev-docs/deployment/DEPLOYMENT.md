@@ -19,7 +19,7 @@ tui-delta is distributed through multiple channels to reach different user commu
 
 Ensure the following are completed before proceeding with deployment:
 
-- Restore python testing full matrix in test.yml: `["PYTHON_VERSION_MIN_KICKOFF", "PYTHON_VERSION_INTERMEDIATE_1_KICKOFF", "PYTHON_VERSION_INTERMEDIATE_2_KICKOFF", "PYTHON_VERSION_INTERMEDIATE_3_KICKOFF", "PYTHON_VERSION_INTERMEDIATE_4_KICKOFF", "PYTHON_VERSION_MAX_KICKOFF"]`
+- Restore python testing full matrix in test.yml: `["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]`
 - Add the additional python tests to the required list for branch protection
 - Increase the test coverage requirement `--cov-fail-under`
 
@@ -145,7 +145,7 @@ class Uniqseq < Formula
   sha256 "..."  # SHA256 hash of the PyPI tarball (get from PyPI)
   license "MIT"
 
-  depends_on "python@PYTHON_VERSION_MAX_KICKOFF"
+  depends_on "python@3.14"
 
   # List all Python dependencies
   resource "typer" do

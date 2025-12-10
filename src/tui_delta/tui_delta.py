@@ -23,7 +23,9 @@ class TuiDelta:
             explain: If True, output explanations to stderr showing why TEMPLATE_PLACEHOLDER
                     (default: False)
         """
-        self.TEMPLATE_PLACEHOLDER = TEMPLATE_PLACEHOLDER  # Inverse mode: keep duplicates, remove unique
+        self.TEMPLATE_PLACEHOLDER = (
+            TEMPLATE_PLACEHOLDER  # Inverse mode: keep duplicates, remove unique
+        )
         self.explain = explain  # Show explanations to stderr
 
     def _print_explain(self, message: str) -> None:

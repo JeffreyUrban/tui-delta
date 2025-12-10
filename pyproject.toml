@@ -6,13 +6,13 @@ build-backend = "hatchling.build"
 name = "tui_delta"
 # Version is automatically determined from git tags via hatch-vcs
 dynamic = ["version"]
-description = "Wraps a TUI (terminal user interface) applicatvel content"
+description = "Run a TUI (terminal user interface) application with real-time delta processing"
 readme = "README.md"
 license = {file = "LICENSE"}
 authors = [
     {name = "Jeffrey Urban"}
 ]
-requires-python = ">=PYTHON_VERSION_MIN_KICKOFF"
+requires-python = ">=3.9"
 keywords = [
     "terminal",
 ]
@@ -28,16 +28,18 @@ classifiers = [
     "Operating System :: OS Independent",
     "License :: OSI Approved :: MIT License",
     "Programming Language :: Python :: 3",
-    "Programming Language :: Python :: PYTHON_VERSION_MIN_KICKOFF",
-    "Programming Language :: Python :: PYTHON_VERSION_INTERMEDIATE_1_KICKOFF",
-    "Programming Language :: Python :: PYTHON_VERSION_INTERMEDIATE_2_KICKOFF",
-    "Programming Language :: Python :: PYTHON_VERSION_INTERMEDIATE_3_KICKOFF",
-    "Programming Language :: Python :: PYTHON_VERSION_INTERMEDIATE_4_KICKOFF",
-    "Programming Language :: Python :: PYTHON_VERSION_MAX_KICKOFF",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Programming Language :: Python :: 3.14",
 ]
 dependencies = [
     "typer>=0.9.0",
     "rich>=13.0.0",
+    "uniqseq>=0.1.0",
+    "patterndb-yaml>=0.1.0",
 ]
 
 [project.optional-dependencies]
@@ -113,7 +115,7 @@ ignore = [
 quote-style = "double"
 
 [tool.pyright]
-pythonVersion = "PYTHON_VERSION_MIN_KICKOFF"
+pythonVersion = "3.9"
 typeCheckingMode = "strict"
 reportUnusedImport = true
 reportUnusedVariable = true

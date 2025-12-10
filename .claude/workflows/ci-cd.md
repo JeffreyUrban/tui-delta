@@ -44,7 +44,7 @@ jobs:
     runs-on: ubuntu-latest
     strategy:
       matrix:
-        python-version: ["PYTHON_VERSION_MIN_KICKOFF", "PYTHON_VERSION_INTERMEDIATE_1_KICKOFF", "PYTHON_VERSION_INTERMEDIATE_2_KICKOFF", "PYTHON_VERSION_INTERMEDIATE_3_KICKOFF", "PYTHON_VERSION_INTERMEDIATE_4_KICKOFF", "PYTHON_VERSION_MAX_KICKOFF"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
     steps: [...]
 \`\`\`
 
@@ -94,7 +94,7 @@ on:
 \`\`\`yaml
 strategy:
   matrix:
-    python-version: ["PYTHON_VERSION_MIN_KICKOFF", "PYTHON_VERSION_INTERMEDIATE_1_KICKOFF", "PYTHON_VERSION_INTERMEDIATE_2_KICKOFF", "PYTHON_VERSION_INTERMEDIATE_3_KICKOFF", "PYTHON_VERSION_INTERMEDIATE_4_KICKOFF", "PYTHON_VERSION_MAX_KICKOFF"]
+    python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
 \`\`\`
 
 **When to update matrix:**
@@ -123,8 +123,8 @@ gh api -X PATCH repos/owner/repo/branches/main/protection/required_status_checks
   -F strict=false \\
   -f 'contexts[]=quality' \\
   -f 'contexts[]=link-check' \\
-  -f 'contexts[]=test (PYTHON_VERSION_MIN_KICKOFF)' \\
-  -f 'contexts[]=test (PYTHON_VERSION_MAX_KICKOFF)' \\
+  -f 'contexts[]=test (3.9)' \\
+  -f 'contexts[]=test (3.14)' \\
   # Add all test matrix jobs
 \`\`\`
 

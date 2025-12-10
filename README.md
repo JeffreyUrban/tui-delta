@@ -11,7 +11,7 @@
 
 > - **Star/watch the repo to be notified when the first release is available.**
 
-**Wraps a TUI (terminal user interface) applicatvel content**
+**Run a TUI (terminal user interface) application with real-time delta processing**
 
 [![PyPI version](https://img.shields.io/pypi/v/tui-delta.svg)](https://pypi.org/project/tui-delta/)
 [![Tests](https://github.com/JeffreyUrban/tui-delta/actions/workflows/test.yml/badge.svg)](https://github.com/JeffreyUrban/tui-delta/actions/workflows/test.yml)
@@ -55,7 +55,7 @@ cd tui-delta-workspace/tui-delta
 pip install -e ".[dev]"
 ```
 
-**Requirements:** Python PYTHON_VERSION_MIN_KICKOFF+
+**Requirements:** Python 3.9+
 
 **IDE Configuration:**
 - **PyCharm**: Project settings are pre-configured in `.idea/` (source roots automatically set)
