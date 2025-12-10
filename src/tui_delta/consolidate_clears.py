@@ -542,8 +542,7 @@ def main(
 
     # Initialize normalization engine and load sequence configurations
     module_dir = Path(__file__).parent
-    unified_path = module_dir / 'tui_profiles.yaml'
-    rules_path = unified_path
+    rules_path = module_dir / 'normalization_rules.yaml'
 
     norm_engine = None
     sequence_configs = {}

@@ -100,7 +100,8 @@ def build_pipeline_commands(
 
     # Step 4: cut -b 4- (strip prefix)
     # Using Python one-liner to strip first 4 characters
-    cut_cmd = [sys.executable, "-c", "import sys; [print(line[3:]) for line in sys.stdin]"]
+    # Use end='' to avoid adding extra newlines (stdin lines already have them)
+    cut_cmd = [sys.executable, "-c", "import sys; [print(line[3:], end='') for line in sys.stdin]"]
     pipeline.append(cut_cmd)
 
     # Step 5 (optional): additional_pipeline from profile
