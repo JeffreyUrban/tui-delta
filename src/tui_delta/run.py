@@ -181,13 +181,37 @@ def run_tui_with_pipeline(
             finally:
                 current_stdin.close()
 
-        # Wait for all processes
+        # Wait for all processes and collect errors
         exit_code = 0
-        for proc in processes:
+        errors = []
+
+        for i, proc in enumerate(processes):
             proc.wait()
-            # Capture script's exit code
-            if proc == script_proc:
+
+            # Collect stderr if process failed
+            if proc.returncode != 0:
+                stderr_output = proc.stderr.read().decode('utf-8', errors='replace')
+                # Identify which stage failed
+                if proc == script_proc:
+                    stage_name = "script"
+                else:
+                    stage_name = f"pipeline stage {i}"
+
+                errors.append(f"{stage_name} (exit {proc.returncode}):\n{stderr_output}")
+
+                # Capture first non-zero exit code
+                if exit_code == 0:
+                    exit_code = proc.returncode
+
+            # Also capture script's exit code even if it succeeds
+            if proc == script_proc and exit_code == 0:
                 exit_code = proc.returncode
+
+        # Report all errors to stderr
+        if errors:
+            print("Pipeline errors:", file=sys.stderr)
+            for error in errors:
+                print(error, file=sys.stderr)
 
         return exit_code
 
