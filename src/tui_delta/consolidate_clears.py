@@ -16,6 +16,10 @@ Multi-line sequence buffering:
 - Sequences are extracted from blocks and buffered
 - Buffered sequences output only before first block without the sequence
 - Supports any sequences defined with 'sequence' field
+
+Configuration:
+- Loads normalization patterns from tui_profiles.yaml
+- All patterns are available; profiles determine which rules are used upstream
 """
 
 import sys
@@ -24,6 +28,8 @@ from enum import Enum
 from typing import Optional
 from pathlib import Path
 import re
+import tempfile
+import yaml
 
 import typer
 from rich.console import Console
@@ -32,6 +38,40 @@ from patterndb_yaml import PatterndbYaml
 
 # Compile ANSI escape sequence regex once at module import time
 ANSI_RE = re.compile(r'\x1b\[[0-9;]*[a-zA-Z]')
+
+
+def _create_rules_file_from_profiles() -> Path:
+    """
+    Create a temporary normalization rules file from tui_profiles.yaml.
+
+    Converts all pattern definitions from dict format to the rules list
+    format expected by PatterndbYaml.
+
+    Returns:
+        Path to temporary YAML file in rules format
+    """
+    module_dir = Path(__file__).parent
+    profiles_path = module_dir / 'tui_profiles.yaml'
+
+    with open(profiles_path, 'r') as f:
+        config = yaml.safe_load(f)
+
+    # Get all pattern definitions
+    all_patterns = config.get('patterns', {})
+
+    # Convert all patterns from dict to rules list format
+    rules = []
+    for pattern_name, pattern_def in all_patterns.items():
+        # Add 'name' field for rules list format
+        rule = {'name': pattern_name, **pattern_def}
+        rules.append(rule)
+
+    # Create temp file with rules in expected format
+    temp_file = tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False)
+    yaml.safe_dump({'rules': rules}, temp_file)
+    temp_file.close()
+
+    return Path(temp_file.name)
 
 
 class LineType(str, Enum):
@@ -541,13 +581,17 @@ def main(
     console = Console(force_terminal=True) if diff else None
 
     # Initialize normalization engine and load sequence configurations
+    # Create temporary rules file from tui_profiles.yaml
     module_dir = Path(__file__).parent
-    rules_path = module_dir / 'normalization_rules.yaml'
+    profiles_path = module_dir / 'tui_profiles.yaml'
 
     norm_engine = None
     sequence_configs = {}
     sequence_markers = set()
-    if rules_path.exists():
+    rules_path = None
+
+    if profiles_path.exists():
+        rules_path = _create_rules_file_from_profiles()
         norm_engine = PatterndbYaml(rules_path)
         # Extract sequence configurations from the engine
         sequence_configs = norm_engine.sequence_configs
@@ -647,6 +691,11 @@ def main(
         pass
     except BrokenPipeError:
         sys.stderr.close()
+    finally:
+        # Clean up temporary rules file if created
+        if rules_path and rules_path.exists():
+            import os
+            os.unlink(rules_path)
 
 
 if __name__ == "__main__":
