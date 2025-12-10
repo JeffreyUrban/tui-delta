@@ -11,7 +11,9 @@
 
 > - **Star/watch the repo to be notified when the first release is available.**
 
-**Run a TUI (terminal user interface) application with real-time delta processing**
+**Run a TUI application with real-time delta processing for monitoring and logging AI assistant sessions**
+
+Capture and log AI assistant interactive sessions efficiently, streaming all meaningfully different content exactly as shown in the terminal. Fully supports Claude Code; other AI assistants (Cline, Cursor, Aider) expected to work with profile customization. The pipeline removes screen control sequences, outputs ephemeral content, and deduplicates redundant output - creating clean, viewable logs suitable for real-time monitoring and archival.
 
 [![PyPI version](https://img.shields.io/pypi/v/tui-delta.svg)](https://pypi.org/project/tui-delta/)
 [![Tests](https://github.com/JeffreyUrban/tui-delta/actions/workflows/test.yml/badge.svg)](https://github.com/JeffreyUrban/tui-delta/actions/workflows/test.yml)
@@ -63,40 +65,48 @@ pip install -e ".[dev]"
 
 ## Quick Start
 
-### Command Line
+### Logging a Claude Code Session
 
 ```bash
-tui-delta
+# Run Claude Code with tui-delta processing
+tui-delta --profile claude_code -- claude code
+
+# Output streams to stdout in real-time
+# You can pipe to logging tools, tee to file, etc.
 ```
 
-### Python API
+### View Captured Logs
 
-```python
-from tui-delta import TuiDelta
+Logs preserve the original terminal appearance and are viewable with standard tools:
 
-# Initialize with configuration
-TEMPLATE_PLACEHOLDER = TuiDelta(
-    TEMPLATE_PLACEHOLDER=TEMPLATE_PLACEHOLDER
-)
+```bash
+# View with less (supports colors and formatting)
+less -R session.log
 
-# Process stream
-with open("app.log") as infile, open("clean.log", "w") as outfile:
-    for line in infile:
-        TEMPLATE_PLACEHOLDER.TEMPLATE_PLACEHOLDER(TEMPLATE_PLACEHOLDER, outfile)
-    TEMPLATE_PLACEHOLDER.flush(outfile)
+# Follow in real-time
+tui-delta --profile claude_code -- claude code | tee session.log
+
+# Monitor with tail
+tui-delta --profile claude_code -- claude code > session.log &
+tail -f session.log
 ```
 
 ## Use Cases
 
-- **TEMPLATE_PLACEHOLDER** - TEMPLATE_PLACEHOLDER
+- **AI Assistant Logging** - Capture Claude Code sessions (fully supported); others expected to work with custom profiles
+- **Real-time Monitoring** - Stream processed output to monitoring tools while the session runs
+- **TUI Development** - Debug terminal applications by seeing all content changes
+- **Education** - Record and share AI-assisted coding sessions with clean, readable logs
 
 ## How It Works
 
-`tui-delta` uses TEMPLATE_PLACEHOLDER:
+`tui-delta` wraps TUI applications and processes their output through a pipeline:
 
-1. **TEMPLATE_PLACEHOLDER** - TEMPLATE_PLACEHOLDER
-
-TEMPLATE_PLACEHOLDER.
+1. **Capture** - Uses `script` to capture all terminal output including control sequences
+2. **Clear Detection** - Identifies lines that were cleared/overwritten (common in TUI apps)
+3. **Consolidation** - Outputs only meaningful changes, removing redundant redraws
+4. **Deduplication** - Removes duplicate sequences using configurable patterns
+5. **Streaming** - All output streams in real-time to stdout for immediate use
 
 ## Documentation
 
@@ -157,12 +167,14 @@ The script will automatically detect your repository from the git remote, or you
 
 **Note:** After setting up GitHub Actions workflows, add required status checks by following the instructions shown at the end of the script output.
 
-## Performance
+## Features
 
-- **Time complexity:** O(TEMPLATE_PLACEHOLDER)
-- **Space complexity:** O(TEMPLATE_PLACEHOLDER)
-- **Throughput:** TEMPLATE_PLACEHOLDER
-- **Memory:** TEMPLATE_PLACEHOLDER
+- **Profile-based Processing** - Pre-configured profiles for Claude Code, generic TUI apps, and minimal processing
+- **Custom Profiles** - Define your own YAML profiles for different TUI applications
+- **Real-time Streaming** - Output streams as the session runs, no buffering delays
+- **Preserves Appearance** - Logs show content exactly as displayed in terminal
+- **Efficient Deduplication** - Smart removal of redundant content while keeping ephemeral changes
+- **Unix Pipeline Friendly** - Works with standard Unix tools (tee, grep, tail, etc.)
 
 ## License
 

@@ -64,16 +64,11 @@ nav:
       - Quick Start: getting-started/quick-start.md
       - Basic Concepts: getting-started/basic-concepts.md
   - Use Cases:
-      - TEMPLATE_PLACEHOLDER:
-          - TEMPLATE_PLACEHOLDER: use-cases/TEMPLATE_PLACEHOLDER/TEMPLATE_PLACEHOLDER.md
-  - Features:
-      - TEMPLATE_PLACEHOLDER: features/TEMPLATE_PLACEHOLDER/TEMPLATE_PLACEHOLDER.md
-      - Explain Mode: features/explain/explain.md
-      - Statistics Output: features/stats/stats.md
+      - AI Assistant Logging: use-cases/ai-assistants/ai-assistants.md
   - Guides:
-      - TEMPLATE_PLACEHOLDER: guides/TEMPLATE_PLACEHOLDER.md
-      - Performance: guides/performance.md
+      - Custom Profiles: guides/custom-profiles.md
       - Common Patterns: guides/common-patterns.md
+      - Performance: guides/performance.md
       - Troubleshooting: guides/troubleshooting.md
   - Reference:
       - CLI: reference/cli.md

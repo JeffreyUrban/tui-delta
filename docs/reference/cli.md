@@ -1,157 +1,146 @@
-# ⚠️ Template doc: Testing disabled ⚠️
-
 # CLI Reference
 
-Complete reference for the `tui-delta` command-line interface.
+Complete command-line reference for `tui-delta`.
 
-## Command Syntax
+## Commands
 
-```bash
-tui-delta [OPTIONS] [INPUT_FILE]
+### `tui-delta run`
+
+Run a TUI application with real-time delta processing.
+
+**Usage:**
+
+```console
+$ tui-delta run [OPTIONS] -- COMMAND...
 ```
 
-## Basic Usage
+**Arguments:**
 
-```bash
-# TEMPLATE_PLACEHOLDER
-tui-delta TEMPLATE_PLACEHOLDER
+- `COMMAND...` - The TUI command to run (e.g., `claude code`, `npm test`)
+
+**Options:**
+
+- `--profile`, `-p` TEXT - Clear rules profile (claude_code, generic, minimal, or custom)
+- `--rules-file` FILE - Path to custom clear_rules.yaml file
+- `--help`, `-h` - Show help message
+
+**Examples:**
+
+Basic usage with Claude Code:
+
+```console
+$ tui-delta run --profile claude_code -- claude code > session.log
 ```
 
-## Options Reference
+Use generic profile for other TUI apps:
 
-### Core Options
-
-#### `--TEMPLATE_PLACEHOLDER, -b`
-**Type**: TEMPLATE_PLACEHOLDER
-**Default**: TEMPLATE_PLACEHOLDER
-
-TEMPLATE_PLACEHOLDER.
-
-```bash
-tui-delta --TEMPLATE_PLACEHOLDER
+```console
+$ tui-delta run --profile generic -- aider
 ```
 
-### Display Options
+Custom rules file:
 
-#### `--quiet, -q`
-**Type**: Boolean
-**Default**: False
-
-Suppress statistics output to stderr.
-
-```bash
-tui-delta --quiet input.log
+```console
+$ tui-delta run --rules-file my-rules.yaml -- ./myapp
 ```
 
-#### `--progress, -p`
-**Type**: Boolean
-**Default**: False
+**Pipeline:**
 
-Show progress indicator (auto-disabled for pipes).
-
-```bash
-tui-delta --progress large-file.log
-```
-
-#### `--stats-format`
-**Type**: String (table | json)
-**Default**: table
-
-Statistics output format: 'table' (Rich table) or 'json' (machine-readable).
-
-```bash
-tui-delta --stats-format json input.log
-```
-
-#### `--explain`
-**Type**: Boolean
-**Default**: False
-
-Show explanations to stderr for why TEMPLATE_PLACEHOLDER.
-
-Outputs diagnostic messages showing TEMPLATE_PLACEHOLDER decisions:
-- When TEMPLATE_PLACEHOLDER
-- Which TEMPLATE_PLACEHOLDER
-
-```bash
-# See all TEMPLATE_PLACEHOLDER decisions
-tui-delta --explain input.log 2> explain.log
-
-# Debug with quiet mode (only explanations, no stats)
-tui-delta --explain --quiet input.log
-
-# Validate TEMPLATE_PLACEHOLDER
-tui-delta --explain --TEMPLATE_PLACEHOLDER input.log 2>&1 | grep EXPLAIN
-```
-
-Example output:
-```
-EXPLAIN: TEMPLATE_PLACEHOLDER
-```
-
-See [Explain Mode](../features/explain/explain.md) for detailed usage.
-
-### Version Information
-
-#### `--version`
-**Type**: Boolean
-**Default**: False
-
-Show version and exit.
-
-```bash
-tui-delta --version
-```
-
-Example output:
-```
-tui-delta version 0.1.0
-```
-
-## Option Combinations
-
-### Mutually Exclusive Options
-
-- `--TEMPLATE_PLACEHOLDER` and `--TEMPLATE_PLACEHOLDER`: Use one or the other
-- `--TEMPLATE_PLACEHOLDER` requires `--TEMPLATE_PLACEHOLDER`
-
-## Examples
-
-### TEMPLATE_PLACEHOLDER
-
-```bash
-# TEMPLATE_PLACEHOLDER
-tui-delta TEMPLATE_PLACEHOLDER.log > output.log
-```
-
-## Statistics Output
-
-### Table Format (Default)
+The `run` command processes output through:
 
 ```
-┏━━━━━━━━━━━━━━━━━━━━━━━━━━┳━━━━━━━━┓
-┃ Metric                   ┃  Value ┃
-┡━━━━━━━━━━━━━━━━━━━━━━━━━━╇━━━━━━━━┩
-│ TEMPLATE_PLACEHOLDER                     │   TEMPLATE_PLACEHOLDER │
-└──────────────────────────┴────────┘
+script → clear_lines → consolidate → uniqseq → cut → additional_pipeline
 ```
 
-### JSON Format
+Where `additional_pipeline` is profile-specific (e.g., final uniqseq for claude_code).
 
-```json
-{
-  "statistics": {
-    "TEMPLATE_PLACEHOLDER": TEMPLATE_PLACEHOLDER
-  }
-}
+### `tui-delta list-profiles`
+
+List available clear rules profiles.
+
+**Usage:**
+
+```console
+$ tui-delta list-profiles
+```
+
+**Example output:**
+
+```console
+$ tui-delta list-profiles
+Available profiles:
+  claude_code: Claude Code terminal UI (claude.ai/code)
+  generic: Generic TUI with only universal rules
+  minimal: Minimal - only base rule, no protections
+```
+
+## Profiles
+
+### claude_code
+
+Optimized for Claude Code terminal UI sessions.
+
+**Features:**
+
+- Preserves submitted user input (final occurrence)
+- Normalizes dialog questions and choices
+- Handles activity spinners
+- Tracks thinking indicators
+- Deduplicates task progress updates
+
+**Use when:** Logging Claude Code sessions
+
+### generic
+
+Basic processing for most TUI applications.
+
+**Features:**
+
+- Universal clear detection
+- Blank line boundary protection
+- No pattern normalization
+
+**Use when:** Logging any TUI application, or as starting point for custom profiles
+
+### minimal
+
+Minimal processing with only base clear detection.
+
+**Features:**
+
+- Base clear count formula (N-1)
+- No protections
+- No pattern normalization
+
+**Use when:** Debugging or maximum raw output
+
+## Output
+
+All commands output to stdout. Use shell redirection to save:
+
+```console
+$ tui-delta run -- claude code > session.log
+$ tui-delta run -- claude code | tee session.log  # Display and save
+$ tui-delta run -- claude code 2>&1 | tee full-log.txt  # Include stderr
 ```
 
 ## Exit Codes
 
-- **0**: Success
-- **1**: Error (invalid arguments, file not found, processing error)
+- `0` - Success
+- `1` - Error in pipeline stage
+- TUI application's exit code is preserved
 
-## See Also
+## Environment
 
-- [TuiDelta API](tui-delta.md) - Core TEMPLATE_PLACEHOLDER class
-- [Basic Concepts](../getting-started/basic-concepts.md) - Understanding how tui-delta works
+### Terminal Size
+
+The `script` command used by tui-delta respects terminal size. Set `COLUMNS` and `LINES` for consistent output:
+
+```console
+$ COLUMNS=120 LINES=40 tui-delta run -- claude code
+```
+
+## Next Steps
+
+- **[Quick Start](../getting-started/quick-start.md)** - Get started quickly
+- **[Custom Profiles](../guides/custom-profiles.md)** - Create your own profiles
