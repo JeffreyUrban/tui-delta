@@ -14,7 +14,7 @@ Technical architecture and design decisions:
   - Key implementation details
 
 - **[ALGORITHM_DESIGN.md](design/ALGORITHM_DESIGN.md)** - Detailed algorithm design
-  - TEMPLATE_PLACEHOLDER
+  - Clear detection and consolidation algorithms
   - Memory management and data structures
   - Performance characteristics
 
@@ -30,7 +30,7 @@ Test strategy and coverage:
 
 - **[TESTING_STRATEGY.md](testing/TESTING_STRATEGY.md)** - Test organization and approach
   - Test categories and structure
-  - Unit, integration, and oracle testing
+  - Unit, integration, and property-based testing
   - Testing best practices
   - CI/CD integration
 
@@ -40,10 +40,6 @@ Test strategy and coverage:
   - Gap analysis and priorities
   - Historical testing milestones
 
-- **[ORACLE_TESTING.md](testing/ORACLE_TESTING.md)** - Oracle-based testing
-  - Reference implementation testing
-  - Correctness validation approach
-  - Oracle compatibility guarantees
 
 ### Deployment Documentation (`deployment/`)
 

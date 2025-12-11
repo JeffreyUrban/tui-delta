@@ -1,6 +1,6 @@
 # Deployment and Distribution
 
-**Status**: 
+**Status**:
 
 **Prerequisites**: Core features complete, documentation ready
 
@@ -25,9 +25,9 @@ Ensure the following are completed before proceeding with deployment:
 
 ## PyPI Package
 
-**Status**: 
+**Status**:
 
-**Current Version**: 
+**Current Version**:
 
 ### Release Process
 
@@ -136,10 +136,10 @@ Create separate tap repository: `homebrew-tui-delta`
 File: `Formula/tui-delta.rb`
 
 ```ruby
-class Uniqseq < Formula
+class TuiDelta < Formula
   include Language::Python::Virtualenv
 
-  desc "TEMPLATE_PLACEHOLDER"
+  desc "TUI application capture with real-time delta processing and logging"
   homepage "https://github.com/JeffreyUrban/tui-delta"
   url "https://files.pythonhosted.org/packages/.../tui-delta-0.1.1.tar.gz"
   sha256 "..."  # SHA256 hash of the PyPI tarball (get from PyPI)

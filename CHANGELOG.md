@@ -11,11 +11,22 @@ No unreleased changes yet.
 
 ---
 
-## [0.0.0] - 1970-01-01
+## [0.1.0] - 2025-12-11
 
-### TEMPLATE_PLACEHOLDER
+Initial release.
 
-Special thanks to the Python community and the developers of the excellent tools that made this project possible.
+### Features
+- TUI application capture and delta processing
+- Profile-based processing with built-in profile for Claude Code
+- Clear detection and consolidation for terminal output
+- Real-time streaming output
+- Deduplication of repeated content blocks via uniqseq
+- Multi-line pattern recognition via patterndb-yaml
+- Command-line interface with typer and rich
+- Comprehensive test suite with property-based testing
+- Documentation site with MkDocs Material
+- GitHub Actions CI/CD pipeline
+- PyPI and Homebrew distribution support
 
 ---
 
@@ -30,5 +41,5 @@ Releases are automated via GitHub Actions when a version tag is pushed:
    - Publishes to PyPI (when configured)
 4. Version number is automatically derived from Git tag
 
-[Unreleased]: https://github.com/JeffreyUrban/tui-delta/compare/v0.1.1...HEAD
-[0.0.0]: https://github.com/JeffreyUrban/tui-delta/releases/tag/v0.1.0
+[Unreleased]: https://github.com/JeffreyUrban/tui-delta/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/JeffreyUrban/tui-delta/releases/tag/v0.1.0

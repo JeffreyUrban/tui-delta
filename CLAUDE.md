@@ -122,7 +122,7 @@ Before recommending user run ANY code that modifies their files or data:
 Claude guidance is organized by scope:
 
 - **[Development](.claude/development.md)** - Coding standards, patterns, tools, modern practices
-- **[Testing](.claude/testing.md)** - Test strategy, pytest, coverage, oracle testing
+- **[Testing](.claude/testing.md)** - Test strategy, pytest, coverage, property-based testing
 - **[Documentation](.claude/documentation.md)** - Doc standards, MkDocs, Sybil, doc testing
 - **[Data Safety](.claude/data-safety.md)** - Protecting user work, backup strategies, safe defaults
 - **[Workflows](.claude/workflows/)** - Common task workflows and checklists
@@ -146,7 +146,6 @@ Key documentation by purpose:
 **Testing Documentation:**
 - **[dev-docs/testing/TESTING_STRATEGY.md](./dev-docs/testing/TESTING_STRATEGY.md)** - Test strategy and organization
 - **[dev-docs/testing/TEST_COVERAGE.md](./dev-docs/testing/TEST_COVERAGE.md)** - Test coverage plan
-- **[dev-docs/testing/ORACLE_TESTING.md](./dev-docs/testing/ORACLE_TESTING.md)** - Oracle-based testing approach
 
 ## Project Context
 
