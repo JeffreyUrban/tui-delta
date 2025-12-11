@@ -60,6 +60,59 @@ class TestCharDiff:
         # Should have both matching and different parts
         assert "hello" in str(result)
 
+    def test_char_diff_insert_operation(self):
+        """Test _char_diff with insert operation."""
+        from tui_delta.consolidate_clears import _char_diff
+
+        result = _char_diff("abc", "abXc")
+
+        assert isinstance(result, Text)
+        # Should handle insertion
+        assert len(result) > 0
+
+    def test_char_diff_delete_operation(self):
+        """Test _char_diff with delete operation."""
+        from tui_delta.consolidate_clears import _char_diff
+
+        result = _char_diff("abXc", "abc")
+
+        assert isinstance(result, Text)
+        # Should handle deletion
+        assert len(result) > 0
+
+    def test_char_diff_replace_operation(self):
+        """Test _char_diff with replace operation."""
+        from tui_delta.consolidate_clears import _char_diff
+
+        result = _char_diff("abc", "aXc")
+
+        assert isinstance(result, Text)
+        # Should handle replacement
+        assert len(result) > 0
+
+    def test_char_diff_multiple_operations(self):
+        """Test _char_diff with multiple operations."""
+        from tui_delta.consolidate_clears import _char_diff
+
+        result = _char_diff("the quick brown fox", "a fast red dog")
+
+        assert isinstance(result, Text)
+        # Should handle multiple changes
+        assert len(result) > 0
+
+    def test_char_diff_long_strings(self):
+        """Test _char_diff with long strings."""
+        from tui_delta.consolidate_clears import _char_diff
+
+        old = "a" * 1000 + "b" * 1000
+        new = "a" * 1000 + "c" * 1000
+
+        result = _char_diff(old, new)
+
+        assert isinstance(result, Text)
+        # Should handle long strings
+        assert len(result) > 0
+
 
 @pytest.mark.unit
 class TestRenderComponentSequence:
@@ -345,3 +398,107 @@ class TestOutputDiff:
         result = output_diff(old, new, "\\: ")
 
         assert isinstance(result, list)
+
+
+@pytest.mark.unit
+class TestClearLinesHelpers:
+    """Test clear_lines.py helper functions."""
+
+    def test_extract_osc_window_title_with_bell(self):
+        """Test extract_osc_window_title with bell terminator."""
+        from tui_delta.clear_lines import extract_osc_window_title
+
+        result = extract_osc_window_title("\x1b]0;MyTitle\x07")
+
+        assert result == "MyTitle"
+
+    def test_extract_osc_window_title_with_st(self):
+        """Test extract_osc_window_title with ST terminator."""
+        from tui_delta.clear_lines import extract_osc_window_title
+
+        result = extract_osc_window_title("\x1b]2;AnotherTitle\x1b\\")
+
+        assert result == "AnotherTitle"
+
+    def test_extract_osc_window_title_invalid(self):
+        """Test extract_osc_window_title with invalid sequence."""
+        from tui_delta.clear_lines import extract_osc_window_title
+
+        result = extract_osc_window_title("\x1b]1;InvalidCode\x07")
+
+        assert result is None
+
+    def test_extract_osc_window_title_no_sequence(self):
+        """Test extract_osc_window_title with no OSC sequence."""
+        from tui_delta.clear_lines import extract_osc_window_title
+
+        result = extract_osc_window_title("regular text")
+
+        assert result is None
+
+    def test_count_clear_sequences_none(self):
+        """Test count_clear_sequences with no clear sequences."""
+        from tui_delta.clear_lines import count_clear_sequences
+
+        result = count_clear_sequences("regular line")
+
+        assert result == 0
+
+    def test_count_clear_sequences_one(self):
+        """Test count_clear_sequences with one clear sequence."""
+        from tui_delta.clear_lines import count_clear_sequences
+
+        result = count_clear_sequences("\x1b[2K")
+
+        assert result == 1
+
+    def test_count_clear_sequences_multiple(self):
+        """Test count_clear_sequences with multiple clear sequences."""
+        from tui_delta.clear_lines import count_clear_sequences
+
+        result = count_clear_sequences("\x1b[2K\x1b[2K\x1b[2K")
+
+        assert result == 3
+
+    def test_count_clear_sequences_mixed_content(self):
+        """Test count_clear_sequences with mixed content."""
+        from tui_delta.clear_lines import count_clear_sequences
+
+        result = count_clear_sequences("text\x1b[2Kmore text\x1b[2K")
+
+        assert result == 2
+
+    def test_format_line_no_prefix_no_number(self):
+        """Test _format_line without prefix or line number."""
+        from tui_delta.clear_lines import _format_line
+
+        result = _format_line("+: ", 42, "content", show_prefixes=False, show_line_numbers=False)
+
+        assert result == "content"
+
+    def test_format_line_prefix_only(self):
+        """Test _format_line with prefix only."""
+        from tui_delta.clear_lines import _format_line
+
+        result = _format_line("+: ", 42, "content", show_prefixes=True, show_line_numbers=False)
+
+        assert "+: content" in result
+
+    def test_format_line_number_only(self):
+        """Test _format_line with line number only."""
+        from tui_delta.clear_lines import _format_line
+
+        result = _format_line("+: ", 42, "content", show_prefixes=False, show_line_numbers=True)
+
+        assert "42" in result
+        assert "content" in result
+
+    def test_format_line_both_prefix_and_number(self):
+        """Test _format_line with both prefix and line number."""
+        from tui_delta.clear_lines import _format_line
+
+        result = _format_line("+: ", 42, "content", show_prefixes=True, show_line_numbers=True)
+
+        assert "+: " in result
+        assert "42" in result
+        assert "content" in result
