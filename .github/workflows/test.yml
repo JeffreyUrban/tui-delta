@@ -65,8 +65,7 @@ jobs:
     timeout-minutes: 15  # Prevent jobs from hanging indefinitely
     strategy:
       matrix:
-        python-version: ["3.9", "3.14"]
-#        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
+        python-version: ["3.9", "3.10", "3.11", "3.12", "3.13", "3.14"]
 
     steps:
       - uses: actions/checkout@v6
@@ -94,7 +93,7 @@ jobs:
         env:
           COLUMNS: 120  # Set terminal width for consistent Rich output formatting
         run: |
-          pytest --cov=src/tui_delta --cov-report=xml --cov-report=term --cov-fail-under=0
+          pytest --cov=src/tui_delta --cov-report=xml --cov-report=term --cov-fail-under=85
 
       - name: Upload coverage to Codecov
         if: matrix.python-version == '3.14'
