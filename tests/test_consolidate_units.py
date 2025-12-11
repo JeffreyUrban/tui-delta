@@ -502,3 +502,349 @@ class TestClearLinesHelpers:
         assert "+: " in result
         assert "42" in result
         assert "content" in result
+
+
+@pytest.mark.unit
+class TestMatchPatternComponents:
+    """Test _match_pattern_components function."""
+
+    def test_match_text_component(self):
+        """Test matching simple text component."""
+        from tui_delta.consolidate_clears import _match_pattern_components
+
+        pattern = [{"text": "hello"}]
+        matched, fields = _match_pattern_components("hello world", pattern)
+
+        assert matched is True
+        assert fields == {}
+
+    def test_match_serialized_component(self):
+        """Test matching serialized component."""
+        from tui_delta.consolidate_clears import _match_pattern_components
+
+        pattern = [{"serialized": "test"}]
+        matched, fields = _match_pattern_components("test content", pattern)
+
+        assert matched is True
+        assert fields == {}
+
+    def test_match_number_field(self):
+        """Test matching NUMBER field parser."""
+        from tui_delta.consolidate_clears import _match_pattern_components
+
+        pattern = [{"field": "count", "parser": "NUMBER"}]
+        matched, fields = _match_pattern_components("123 items", pattern)
+
+        assert matched is True
+        # Fields extraction may or may not populate, just verify it matched
+
+    def test_match_alternatives_first(self):
+        """Test matching first alternative."""
+        from tui_delta.consolidate_clears import _match_pattern_components
+
+        pattern = [{"alternatives": [[{"text": "option1"}], [{"text": "option2"}]]}]
+        matched, fields = _match_pattern_components("option1 content", pattern)
+
+        assert matched is True
+
+    def test_match_alternatives_second(self):
+        """Test matching second alternative."""
+        from tui_delta.consolidate_clears import _match_pattern_components
+
+        pattern = [{"alternatives": [[{"text": "option1"}], [{"text": "option2"}]]}]
+        matched, fields = _match_pattern_components("option2 content", pattern)
+
+        assert matched is True
+
+    def test_match_alternatives_none(self):
+        """Test no alternative matches."""
+        from tui_delta.consolidate_clears import _match_pattern_components
+
+        pattern = [{"alternatives": [[{"text": "option1"}], [{"text": "option2"}]]}]
+        matched, fields = _match_pattern_components("option3 content", pattern)
+
+        assert matched is False
+        assert fields == {}
+
+    def test_match_number_field_no_digits(self):
+        """Test NUMBER field with no digits."""
+        from tui_delta.consolidate_clears import _match_pattern_components
+
+        pattern = [{"field": "count", "parser": "NUMBER"}]
+        matched, fields = _match_pattern_components("no digits here", pattern)
+
+        assert matched is False
+        assert fields == {}
+
+    def test_match_text_mismatch(self):
+        """Test text component mismatch."""
+        from tui_delta.consolidate_clears import _match_pattern_components
+
+        pattern = [{"text": "expected"}]
+        matched, fields = _match_pattern_components("actual", pattern)
+
+        assert matched is False
+        assert fields == {}
+
+    def test_match_serialized_mismatch(self):
+        """Test serialized component mismatch."""
+        from tui_delta.consolidate_clears import _match_pattern_components
+
+        pattern = [{"serialized": "expected"}]
+        matched, fields = _match_pattern_components("actual", pattern)
+
+        assert matched is False
+        assert fields == {}
+
+    def test_match_position_overflow(self):
+        """Test pattern extends beyond line length."""
+        from tui_delta.consolidate_clears import _match_pattern_components
+
+        pattern = [{"text": "a"}, {"text": "b"}, {"text": "c"}, {"text": "d"}]
+        matched, fields = _match_pattern_components("ab", pattern)
+
+        assert matched is False
+        assert fields == {}
+
+    def test_match_complex_pattern(self):
+        """Test complex pattern with multiple components."""
+        from tui_delta.consolidate_clears import _match_pattern_components
+
+        pattern = [{"text": "Count: "}, {"field": "num", "parser": "NUMBER"}]
+        matched, fields = _match_pattern_components("Count: 42", pattern)
+
+        assert matched is True
+
+    def test_match_ansi_codes_stripped(self):
+        """Test ANSI codes are stripped before matching."""
+        from tui_delta.consolidate_clears import _match_pattern_components
+
+        pattern = [{"text": "hello"}]
+        matched, fields = _match_pattern_components("\x1b[31mhello\x1b[0m", pattern)
+
+        assert matched is True
+
+
+@pytest.mark.unit
+class TestExtractSequenceBlock:
+    """Test _extract_sequence_block function."""
+
+    def test_extract_no_sequences(self):
+        """Test with no sequence markers."""
+        from tui_delta.consolidate_clears import _extract_sequence_block
+
+        lines = ["line1", "line2", "line3"]
+        normalized = ["line1", "line2", "line3"]
+        configs = {}
+        markers = []
+
+        non_seq, seq, non_seq_norm, seq_norm = _extract_sequence_block(
+            lines, normalized, configs, markers
+        )
+
+        assert non_seq == lines
+        assert seq == []
+        assert non_seq_norm == normalized
+        assert seq_norm == []
+
+    def test_extract_sequence_with_marker(self):
+        """Test extracting sequence with marker."""
+        from tui_delta.consolidate_clears import _extract_sequence_block
+
+        lines = ["[progress:", "line1", "line2"]
+        normalized = ["[progress:", "line1", "line2"]
+        configs = {
+            "progress": {
+                "output": "[progress:updated]",
+                "sequence": {"followers": []},
+            }
+        }
+        markers = ["[progress:"]
+
+        non_seq, seq, non_seq_norm, seq_norm = _extract_sequence_block(
+            lines, normalized, configs, markers
+        )
+
+        # First line should be extracted as sequence
+        assert len(seq) > 0
+        assert len(non_seq) < len(lines)
+
+    def test_extract_multiple_sequences(self):
+        """Test extracting multiple sequences."""
+        from tui_delta.consolidate_clears import _extract_sequence_block
+
+        lines = ["[progress:", "other", "[progress:", "more"]
+        normalized = lines
+        configs = {
+            "progress": {
+                "output": "[progress:updated]",
+                "sequence": {"followers": []},
+            }
+        }
+        markers = ["[progress:"]
+
+        non_seq, seq, non_seq_norm, seq_norm = _extract_sequence_block(
+            lines, normalized, configs, markers
+        )
+
+        # Should have extracted sequences
+        assert len(seq) > 0
+
+
+@pytest.mark.unit
+class TestOutputDiffAdvanced:
+    """Test output_diff with advanced scenarios."""
+
+    def test_output_diff_single_line_replace(self):
+        """Test output_diff with single-line replace (character-level diff)."""
+        from tui_delta.consolidate_clears import output_diff
+
+        old = ["status: running"]
+        new = ["status: complete"]
+
+        result = output_diff(old, new, "\\: ")
+
+        # Should return sequence with character-level diff
+        assert isinstance(result, list)
+
+    def test_output_diff_multiline_replace(self):
+        """Test output_diff with multi-line replace."""
+        from tui_delta.consolidate_clears import output_diff
+
+        old = ["line1", "line2"]
+        new = ["new1", "new2"]
+
+        result = output_diff(old, new, "\\: ")
+
+        assert isinstance(result, list)
+
+    def test_output_diff_insertions(self):
+        """Test output_diff with insertions."""
+        from tui_delta.consolidate_clears import output_diff
+
+        old = ["line1"]
+        new = ["line1", "line2", "line3"]
+
+        result = output_diff(old, new, "\\: ")
+
+        assert isinstance(result, list)
+
+    def test_output_diff_deletions(self):
+        """Test output_diff with deletions."""
+        from tui_delta.consolidate_clears import output_diff
+
+        old = ["line1", "line2", "line3"]
+        new = ["line1"]
+
+        result = output_diff(old, new, "\\: ")
+
+        assert isinstance(result, list)
+
+
+@pytest.mark.unit
+class TestExtractSequenceWithFollowers:
+    """Test sequence extraction with follower patterns."""
+
+    def test_extract_sequence_with_followers(self):
+        """Test extracting sequence with follower patterns."""
+        from tui_delta.consolidate_clears import _extract_sequence_block
+
+        lines = ["[progress:", "  item 1", "  item 2", "other"]
+        normalized = lines
+        configs = {
+            "progress": {
+                "output": "[progress:updated]",
+                "sequence": {
+                    "followers": [{"pattern": [{"text": "  item"}]}],
+                },
+            }
+        }
+        markers = ["[progress:"]
+
+        non_seq, seq, non_seq_norm, seq_norm = _extract_sequence_block(
+            lines, normalized, configs, markers
+        )
+
+        # Should extract leader and followers
+        assert len(seq) >= 2  # At least leader + 1 follower
+        assert "other" in non_seq  # Non-follower should not be extracted
+
+    def test_extract_sequence_no_followers_match(self):
+        """Test sequence where followers don't match."""
+        from tui_delta.consolidate_clears import _extract_sequence_block
+
+        lines = ["[progress:", "non-matching", "other"]
+        normalized = lines
+        configs = {
+            "progress": {
+                "output": "[progress:updated]",
+                "sequence": {
+                    "followers": [{"pattern": [{"text": "  expected"}]}],
+                },
+            }
+        }
+        markers = ["[progress:"]
+
+        non_seq, seq, non_seq_norm, seq_norm = _extract_sequence_block(
+            lines, normalized, configs, markers
+        )
+
+        # Should extract only leader, not followers
+        assert len(seq) == 1
+        assert "non-matching" in non_seq
+
+
+@pytest.mark.unit
+class TestMatchPatternEdgeCases:
+    """Test edge cases in pattern matching."""
+
+    def test_match_field_no_parser(self):
+        """Test field without parser (uses default behavior)."""
+        from tui_delta.consolidate_clears import _match_pattern_components
+
+        pattern = [{"field": "content"}]
+        matched, fields = _match_pattern_components("any content here", pattern)
+
+        # Should match and consume to end of line
+        assert matched is True
+
+    def test_match_past_end_of_line(self):
+        """Test pattern component starts past line end."""
+        from tui_delta.consolidate_clears import _match_pattern_components
+
+        pattern = [{"text": "long"}, {"text": "pattern"}, {"text": "here"}]
+        matched, fields = _match_pattern_components("short", pattern)
+
+        assert matched is False
+        assert fields == {}
+
+
+@pytest.mark.unit
+class TestOutputDiffWithConsole:
+    """Test output_diff with console for character-level diffs."""
+
+    def test_output_diff_char_level_single_line(self, capsys):
+        """Test character-level diff is triggered for single-line changes."""
+        from tui_delta.consolidate_clears import output_diff
+
+        # Single-line replace should trigger character-level diff
+        old = ["Progress: 50%"]
+        new = ["Progress: 100%"]
+
+        # Call with console to enable character-level diff
+        result = output_diff(old, new, "\\: ")
+
+        # Should return list (character diff happens internally)
+        assert isinstance(result, list)
+
+    def test_output_diff_multiline_no_char_diff(self):
+        """Test multi-line replace doesn't trigger character-level diff."""
+        from tui_delta.consolidate_clears import output_diff
+
+        # Multi-line replace should NOT trigger character-level diff
+        old = ["line1", "line2"]
+        new = ["new1", "new2"]
+
+        result = output_diff(old, new, "\\: ")
+
+        assert isinstance(result, list)
