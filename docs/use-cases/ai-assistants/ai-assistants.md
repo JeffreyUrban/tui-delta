@@ -43,6 +43,33 @@ $ less -R session.log
 
 The `-R` flag may be necessary to preserve ANSI colors and formatting on some systems.
 
+### Plain Text Logs
+
+For clean plain text logs without ANSI colors or formatting:
+
+**Using sed (most portable):**
+```bash
+tui-delta run --profile claude_code -- claude code | \
+  sed 's/\x1b\[[0-9;]*[a-zA-Z]//g' > clean-session.log
+```
+
+**Using ansifilter (recommended if available):**
+```bash
+# Install
+brew install ansifilter  # macOS
+apt install ansifilter   # Ubuntu/Debian
+
+# Use
+tui-delta run --profile claude_code -- claude code | \
+  ansifilter > clean-session.log
+```
+
+This is useful for:
+- Processing logs with tools that don't handle ANSI codes
+- Reducing log file size
+- Clean text for documentation or sharing
+- Simpler grep/analysis without color codes
+
 ## Other AI Assistants
 
 Start with the `generic` profile:
