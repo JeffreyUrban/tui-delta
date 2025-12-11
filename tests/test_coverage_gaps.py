@@ -308,6 +308,210 @@ class TestRunCoverage:
 
 
 @pytest.mark.unit
+class TestConsolidateClearsAdvanced:
+    """Advanced integration tests for consolidate_clears.py."""
+
+    def test_consolidate_with_no_diff_flag(self):
+        """Test consolidate with --no-diff flag."""
+        import subprocess
+        import sys
+
+        test_input = "\\: line1\n\\: line2\n\\: line3\n"
+
+        result = subprocess.run(
+            [sys.executable, "-m", "tui_delta.consolidate_clears", "--no-diff"],
+            input=test_input,
+            capture_output=True,
+            text=True,
+        )
+
+        assert result.returncode == 0
+        assert result.stdout != ""
+
+    def test_consolidate_with_multiple_cleared_blocks(self):
+        """Test consolidate with multiple distinct cleared blocks."""
+        import subprocess
+        import sys
+
+        # Two separate cleared blocks separated by kept line
+        test_input = (
+            "\\: block1_line1\n\\: block1_line2\n+: kept\n\\: block2_line1\n\\: block2_line2\n"
+        )
+
+        result = subprocess.run(
+            [sys.executable, "-m", "tui_delta.consolidate_clears"],
+            input=test_input,
+            capture_output=True,
+            text=True,
+        )
+
+        assert result.returncode == 0
+        # Should process both blocks
+        assert "block1" in result.stdout or "block2" in result.stdout
+
+    def test_consolidate_long_sequence(self):
+        """Test consolidate with long sequence of lines."""
+        import subprocess
+        import sys
+
+        # Generate long sequence
+        lines = [f"+: line{i}\n" for i in range(100)]
+        test_input = "".join(lines)
+
+        result = subprocess.run(
+            [sys.executable, "-m", "tui_delta.consolidate_clears"],
+            input=test_input,
+            capture_output=True,
+            text=True,
+        )
+
+        assert result.returncode == 0
+        # Should handle long sequences
+        assert "line" in result.stdout
+
+
+@pytest.mark.unit
+class TestClearLinesAdvanced:
+    """Advanced tests for clear_lines.py edge cases."""
+
+    def test_format_line_with_prefix_and_line_number(self):
+        """Test _format_line with both prefix and line number."""
+        from tui_delta.clear_lines import _format_line
+
+        result = _format_line("+: ", 42, "test content", show_prefixes=True, show_line_numbers=True)
+
+        assert "42" in result
+        assert "+: " in result
+        assert "test content" in result
+
+    def test_format_line_without_line_number(self):
+        """Test _format_line without line number."""
+        from tui_delta.clear_lines import _format_line
+
+        result = _format_line(
+            "+: ", 42, "test content", show_prefixes=True, show_line_numbers=False
+        )
+
+        assert "42" not in result
+        assert "+: " in result
+        assert "test content" in result
+
+    def test_format_line_empty_content(self):
+        """Test _format_line with empty content."""
+        from tui_delta.clear_lines import _format_line
+
+        result = _format_line("+: ", 1, "", show_prefixes=True, show_line_numbers=False)
+
+        assert "+: " in result
+
+    def test_clear_lines_with_window_title_icon_annotation(self, capsys):
+        """Test clear_lines with window-title-icon annotation."""
+        from collections import deque
+
+        from tui_delta.clear_lines import clear_lines
+        from tui_delta.clear_rules import ClearRules
+
+        rules = ClearRules()
+        fifo = deque([(1, "line1"), (2, "[window-title-icon:MyIcon]")])
+
+        clear_lines(
+            fifo,
+            clear_count=0,
+            show_prefixes=True,
+            show_line_numbers=False,
+            clear_operation_count=0,
+            rules=rules,
+        )
+
+        captured = capsys.readouterr()
+        # Should extract and output window title icon
+        assert "[window-title-icon:MyIcon]" in captured.out
+
+    def test_clear_lines_multiple_clears(self, capsys):
+        """Test clear_lines with multiple lines to clear."""
+        from collections import deque
+
+        from tui_delta.clear_lines import clear_lines
+        from tui_delta.clear_rules import ClearRules
+
+        rules = ClearRules()
+        # 5 lines in FIFO
+        fifo = deque([(1, "line1"), (2, "line2"), (3, "line3"), (4, "line4"), (5, "clear")])
+
+        # Clear 3 lines (with N-1 formula: 4 clears = 3 lines cleared)
+        clear_lines(
+            fifo,
+            clear_count=4,
+            show_prefixes=True,
+            show_line_numbers=False,
+            clear_operation_count=0,
+            rules=rules,
+        )
+
+        captured = capsys.readouterr()
+        # Should have cleared line2, line3, line4 and kept line1
+        assert "+: line1" in captured.out
+        assert "\\: line2" in captured.out
+        assert "\\: line3" in captured.out
+        assert "\\: line4" in captured.out
+
+
+@pytest.mark.unit
+class TestClearRulesAdvanced:
+    """Advanced tests for clear_rules.py edge cases."""
+
+    def test_calculate_clear_count_with_none_lines(self):
+        """Test calculate_clear_count with None line parameters."""
+        from tui_delta.clear_rules import ClearRules
+
+        rules = ClearRules()
+
+        result = rules.calculate_clear_count(
+            clear_line_count=3,
+            first_cleared_line=None,
+            first_sequence_line=None,
+            next_line_after_clear=None,
+        )
+
+        # Should still apply N-1 formula
+        assert result == 2
+
+    def test_calculate_clear_count_large_number(self):
+        """Test calculate_clear_count with large clear count."""
+        from tui_delta.clear_rules import ClearRules
+
+        rules = ClearRules()
+
+        result = rules.calculate_clear_count(
+            clear_line_count=1000,
+            first_cleared_line="content",
+            first_sequence_line="content",
+            next_line_after_clear="next",
+        )
+
+        # Should apply N-1 formula
+        assert result == 999
+
+    def test_get_profile_config_minimal(self):
+        """Test get_profile_config for minimal profile."""
+        from tui_delta.clear_rules import ClearRules
+
+        config = ClearRules.get_profile_config("minimal")
+
+        assert "clear_protections" in config
+        assert isinstance(config["clear_protections"], list)
+
+    def test_get_profile_config_generic(self):
+        """Test get_profile_config for generic profile."""
+        from tui_delta.clear_rules import ClearRules
+
+        config = ClearRules.get_profile_config("generic")
+
+        assert "clear_protections" in config
+        assert "normalization_patterns" in config
+
+
+@pytest.mark.unit
 class TestMainModuleCoverage:
     """Tests for __main__.py coverage."""
 
