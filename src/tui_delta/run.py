@@ -73,7 +73,7 @@ def build_pipeline_commands(
     """
     from .clear_rules import ClearRules
 
-    pipeline = []
+    pipeline: list[list[str]] = []
 
     # Step 1: clear_lines --prefixes
     clear_cmd = [sys.executable, "-m", "tui_delta.clear_lines", "--prefixes"]
@@ -142,7 +142,7 @@ def run_tui_with_pipeline(
     pipeline_cmds = build_pipeline_commands(profile, rules_file)
 
     # Create pipeline: script | cmd1 | cmd2 | ... | stdout
-    processes = []
+    processes: list[subprocess.Popen[bytes]] = []
 
     try:
         # Start script process
@@ -183,13 +183,13 @@ def run_tui_with_pipeline(
 
         # Wait for all processes and collect errors
         exit_code = 0
-        errors = []
+        errors: list[str] = []
 
         for i, proc in enumerate(processes):
             proc.wait()
 
             # Collect stderr if process failed
-            if proc.returncode != 0:
+            if proc.returncode != 0 and proc.stderr:
                 stderr_output = proc.stderr.read().decode("utf-8", errors="replace")
                 # Identify which stage failed
                 if proc == script_proc:

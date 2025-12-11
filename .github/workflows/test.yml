@@ -43,7 +43,7 @@ jobs:
 
       - name: Run pyright
         run: |
-          pyright
+          pyright src/
 
   link-check:
     runs-on: ubuntu-latest

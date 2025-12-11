@@ -20,12 +20,16 @@ FIFO terminology:
 import re
 import sys
 from collections import deque
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Optional
+from typing import Optional, cast
 
 import typer
 
 from .clear_rules import ClearRules
+
+# Type alias for FIFO queue items
+FifoItem = tuple[int, str]  # (line_number, content)
 
 MAX_BUFFER_SIZE = 100
 
@@ -69,14 +73,14 @@ def count_clear_sequences(line: str) -> int:
 
 
 def clear_lines(
-    fifo: deque,
+    fifo: deque[FifoItem],
     clear_count: int,
     show_prefixes: bool,
     show_line_numbers: bool,
     clear_operation_count: int,
     rules: ClearRules,
     next_line: Optional[str] = None,
-):
+) -> None:
     """
     Clear lines from the end of the FIFO
 
@@ -195,7 +199,7 @@ def _format_line(
     Returns:
         Formatted line string
     """
-    parts = []
+    parts: list[str] = []
     if show_prefixes:
         parts.append(prefix)
     if show_line_numbers:
@@ -239,7 +243,7 @@ def main(
     list_profiles: bool = typer.Option(
         False, "--list-profiles", help="List available profiles and exit"
     ),
-):
+) -> None:
     """
     Filter to detect and mark cleared lines in terminal output.
 
@@ -259,7 +263,7 @@ def main(
 
     # Load clear rules
     rules = ClearRules(config_path=rules_file, profile=profile)
-    fifo = deque()
+    fifo: deque[FifoItem] = deque()
     line_number = 1
     clear_operation_count = 0
 
@@ -270,7 +274,10 @@ def main(
     else:
         input_stream = sys.stdin.buffer
     # Wrap to decode lines
-    line_iterator = (line.decode("utf-8", errors="replace") for line in input_stream)
+    line_iterator = cast(
+        Iterator[str],
+        (line.decode("utf-8", errors="replace") for line in input_stream),  # type: ignore[union-attr]
+    )
 
     try:
         # Read first line
