@@ -7,4 +7,11 @@ except ImportError:
     # Fallback for development installs without build
     __version__ = "0.0.0.dev0+unknown"
 
-__all__ = ["__version__"]
+from .clear_rules import ClearRules
+from .run import run_tui_with_pipeline
+
+__all__ = [
+    "__version__",
+    "ClearRules",
+    "run_tui_with_pipeline",
+]
