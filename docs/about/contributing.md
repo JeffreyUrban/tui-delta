@@ -183,14 +183,14 @@ pre-commit install
 
 ```
 tui-delta/
-├── src/tui-delta/          # Source code
+├── src/tui_delta/          # Source code
 │   ├── __init__.py
 │   ├── cli.py            # CLI interface (Typer)
-│   ├── processor.py   # Core logic
+│   ├── clear_lines.py    # Clear detection
 │   └── ...
 ├── tests/                # Test files
-│   ├── test_TEMPLATE_PLACEHOLDER.py
-│   ├── test_cli.py
+│   ├── test_clear_lines.py
+│   ├── test_consolidate_clears.py
 │   └── fixtures/         # Test data files
 ├── docs/                 # Documentation (MkDocs)
 │   ├── guides/
