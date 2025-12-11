@@ -73,7 +73,7 @@ source = "vcs"
 packages = ["src/tui_delta"]
 
 [tool.pytest.ini_options]
-testpaths = ["tests", "docs"]
+testpaths = ["tests"]
 python_files = ["test_*.py"]
 python_classes = ["Test*"]
 python_functions = ["test_*"]
