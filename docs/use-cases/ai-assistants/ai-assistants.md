@@ -14,6 +14,7 @@ Primary use case: capturing and logging AI assistant interactive sessions.
 
 ### Basic Logging
 
+<!-- interactive-only -->
 ```console
 $ tui-delta run --profile claude_code -- claude code > session.log
 ```
@@ -27,6 +28,7 @@ Captures the full session with:
 
 ### Real-time Monitoring + Logging
 
+<!-- interactive-only -->
 ```console
 $ tui-delta run --profile claude_code -- claude code | tee session.log
 ```
@@ -45,6 +47,7 @@ The `-R` flag preserves ANSI colors and formatting.
 
 Start with the `generic` profile:
 
+<!-- interactive-only -->
 ```console
 $ tui-delta run --profile generic -- aider
 $ tui-delta run --profile generic -- cursor
@@ -61,8 +64,10 @@ For best results, you'll likely need to create a custom profile. See [Custom Pro
 
 Keep records of AI-assisted development sessions:
 
+<!-- interactive-only -->
 ```console
-$ tui-delta run --profile claude_code -- claude code > "session-$(date +%Y%m%d-%H%M%S).log"
+$ tui-delta run --profile claude_code -- claude code \
+  > "session-$(date +%Y%m%d-%H%M%S).log"
 ```
 
 Creates timestamped log files for each session.
@@ -80,6 +85,7 @@ Review past sessions to:
 
 When unexpected behavior occurs:
 
+<!-- interactive-only -->
 ```console
 $ tui-delta run --profile claude_code -- claude code 2>&1 | tee full-session.log
 ```
@@ -99,18 +105,22 @@ Logged sessions:
 
 ### Append to Daily Log
 
+<!-- interactive-only -->
 ```console
-$ tui-delta run --profile claude_code -- claude code >> daily-$(date +%Y%m%d).log
+$ tui-delta run --profile claude_code -- claude code \
+  >> daily-$(date +%Y%m%d).log
 ```
 
 ### Pipe to Analysis Tools
 
+<!-- interactive-only -->
 ```console
 $ tui-delta run --profile claude_code -- claude code | grep -i "error"
 ```
 
 ### Stream to Remote Logging
 
+<!-- interactive-only -->
 ```console
 $ tui-delta run --profile claude_code -- claude code | logger -t claude-code
 ```

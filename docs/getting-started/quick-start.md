@@ -10,8 +10,29 @@ pip install tui-delta
 
 ## Basic Usage
 
+### Test with Simple Commands
+
+To understand how tui-delta works, you can test with simple commands:
+
+```bash
+printf "line1\nline2\nline3\n" | tui-delta run --profile minimal -- cat
+```
+
+The `minimal` profile passes input through with minimal processing.
+
+### List Available Profiles
+
+See what profiles are available:
+
+```bash
+tui-delta list-profiles
+```
+
+This shows the built-in profiles: `claude_code`, `generic`, and `minimal`.
+
 ### Log an AI Assistant Session
 
+<!-- interactive-only -->
 The primary use case - wrap Claude Code and capture the session:
 
 ```console
@@ -25,7 +46,9 @@ This:
 3. Processes it to remove duplicates and cleared lines
 4. Streams clean output to `session.log`
 
-### View the Log
+See [AI Assistant Logging](../use-cases/ai-assistants/ai-assistants.md) for complete examples.
+
+### View Captured Logs
 
 Logs preserve terminal formatting:
 
@@ -37,48 +60,19 @@ The `-R` flag preserves colors and formatting.
 
 ## Common Patterns
 
-### Save and Display Simultaneously
+### Redirect to File
 
 ```console
-$ tui-delta run --profile claude_code -- claude code | tee session.log
+$ tui-delta run --profile minimal -- echo "test output" > output.log
 ```
 
-Streams to both stdout (your terminal) and `session.log`.
+### Use with Different Profiles
 
-### Real-time Monitoring
-
-```console
-$ tui-delta run --profile claude_code -- claude code > session.log &
-$ tail -f session.log
-```
-
-Run in background and monitor with `tail`.
-
-### Use with Other AI Assistants
-
-Other AI assistants expected to work but likely need profile customization:
-
-```console
-$ tui-delta run --profile generic -- aider
-$ tui-delta run --profile generic -- cursor
-```
-
-Start with `generic` profile, then customize as needed. See [Custom Profiles](../guides/custom-profiles.md).
-
-## Available Profiles
-
-List installed profiles:
-
-```console
-$ tui-delta list-profiles
-Available profiles:
-  claude_code: Claude Code terminal UI (claude.ai/code)
-  generic: Generic TUI with only universal rules
-  minimal: Minimal - only base rule, no protections
-```
+Start with `generic` profile for non-Claude-Code applications, then customize as needed. See [Custom Profiles](../guides/custom-profiles.md) for creating profiles tailored to your TUI.
 
 ## Next Steps
 
 - **[Basic Concepts](basic-concepts.md)** - Understand how tui-delta works
+- **[AI Assistant Logging](../use-cases/ai-assistants/ai-assistants.md)** - Examples with Claude Code and other AI assistants
 - **[CLI Reference](../reference/cli.md)** - Complete command-line options
 - **[Custom Profiles](../guides/custom-profiles.md)** - Create profiles for your TUI apps

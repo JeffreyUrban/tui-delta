@@ -2,78 +2,129 @@
 
 ## Overview
 
-Test-driven development plan for TEMPLATE_PLACEHOLDER. Tests are organized into three categories:
+Test coverage for tui-delta pipeline components. Tests are organized into three categories:
 
-1. **Unit Tests**: Targeted tests for specific mechanisms and edge cases
-2. **Property Tests**: Randomized tests with invariant checking
-3. **Integration Tests**: End-to-end scenarios with realistic data
+1. **Unit Tests**: Targeted tests for specific components and edge cases
+2. **Property Tests**: Tests verifying invariants hold under all conditions
+3. **Integration Tests**: End-to-end pipeline tests with realistic data
 
 All tests use **pytest exclusively** (not unittest).
 
 ## Test Philosophy
 
-- **Test-first**: Write tests before implementation
-- **Comprehensive coverage**: Exercise all code paths and edge cases
-- **Randomized stress testing**: Generate large inputs to expose corner cases
-- **Invariant checking**: Verify algorithm guarantees hold under all conditions
+- **Component-focused**: Test individual pipeline components (clear_lines, consolidate_clears, clear_rules)
+- **Comprehensive edge cases**: Exercise boundary conditions and error paths
+- **Invariant verification**: Ensure algorithm guarantees hold
+- **Integration validation**: Golden output test ensures end-to-end correctness
 - **Clear test names**: Describe what's being tested and expected behavior
 
 ## 1. Unit Tests
 
-### 1.1 TEMPLATE_PLACEHOLDER
+### 1.1 Edge Cases (`tests/test_edge_cases.py`)
 
-**File**: `tests/TEMPLATE_PLACEHOLDER.py`
+Tests edge cases and boundary conditions for pipeline components.
 
-### 1.6 Edge Cases
+**TestClearLinesEdgeCases:**
+- Empty input handling
+- Single clear with no lines to clear
+- Clear sequence counting (empty, single, multiple)
+- Line formatting options (prefixes, line numbers)
+- Clear count formula validation (N-1)
+- Protection rules (blank boundary)
 
-**File**: `tests/test_edge_cases.py`
+**TestClearRulesEdgeCases:**
+- Non-existent profile handling
+- Profile configurations (minimal, generic, claude_code)
+- Profile listing
+- Zero clear count handling
 
-## 2. Property-Based Tests with Random Data
+**TestConsolidateEdgeCases:**
+- Line prefix parsing (+:, \\:, /:, >:)
+- Window title detection
 
-### 2.1 TEMPLATE_PLACEHOLDER
+### 1.2 Comprehensive Tests (`tests/test_comprehensive.py`)
 
-**File**: `tests/TEMPLATE_PLACEHOLDER.py`
+Tests using precomputed fixture cases.
 
-### 2.2 Invariant Testing
+**TestHandcraftedCases:**
+- Simple clear operations
+- Blank boundary protection
 
-**File**: `tests/test_invariants.py`
+**TestEdgeCases:**
+- Single line inputs
+- Excessive clear sequences
 
-### 2.3 Determinism and Reproducibility
+**TestRandomCases:**
+- Mixed content with multiple clear operations
 
-**File**: `tests/test_determinism.py`
+**TestInvariantsWithFixtures:**
+- No data loss verification
+- Line order preservation
+
+**TestFixtureQuality:**
+- Fixture loading validation
+- Required fields verification
+- Profile validation
+
+## 2. Property-Based Tests
+
+### 2.1 Invariant Testing (`tests/test_invariants.py`)
+
+Tests that algorithm invariants hold under all conditions.
+
+**TestClearLinesInvariants:**
+- Clear count never exceeds available lines
+- FIFO order preservation
+- Kept line prefix (+:) verification
+
+**TestPipelineInvariants:**
+- Pipeline output size bounded (compression, not expansion)
+- Line count preservation or reduction (no line creation)
+
+**TestClearRulesInvariants:**
+- Calculated count bounded by input (N-1)
+- Protections only reduce count (never increase)
 
 ## 3. Integration Tests
 
-### 3.1 End-to-End Scenarios
+### 3.1 Pipeline Integration (`tests/test_integration.py`)
 
-**File**: `tests/test_integration.py`
+End-to-end pipeline tests.
 
-## 4. Test Fixtures and Utilities
+**TestClaudeCodePipeline:**
+- Pipeline command structure validation
+- Full pipeline execution with `run_tui_with_pipeline`
+- Golden output verification (byte-for-byte match)
+- Profile-specific testing (claude_code, generic)
 
-### 4.1 Common Fixtures
+## 4. CLI Tests
 
-**File**: `tests/conftest.py`
+### 4.1 CLI Interface (`tests/test_cli.py`)
 
-### 4.2 Test Utilities
+Tests for command-line interface.
 
-**File**: `tests/test_utils.py`
+- Help display
+- File and stdin input
+- Empty input handling
+- Statistics output
+- Quiet mode
+- Progress indicators
+- JSON stats format
+- Error handling
 
-## 5. Test Execution Strategy
-
-### 5.1 Test Markers
+## 5. Test Markers
 
 ```python
-# pytest.ini or pyproject.toml
 [tool.pytest.ini_options]
 markers = [
     "unit: Unit tests for specific components",
-    "property: Property-based tests with random inputs",
+    "property: Property-based tests with invariant checking",
     "integration: End-to-end integration tests",
     "slow: Tests that take >1 second",
 ]
 ```
 
-### 5.2 Running Tests
+## 6. Running Tests
 
 ```bash
 # Run all tests
@@ -86,110 +137,106 @@ pytest -m unit
 pytest -m "not slow"
 
 # Run specific test file
-pytest tests/TEMPLATE_PLACEHOLDER.py
+pytest tests/test_edge_cases.py
 
 # Run with coverage
-pytest --cov=tui-delta --cov-report=html
+pytest --cov=tui_delta --cov-report=html
 
 # Run in parallel (requires pytest-xdist)
 pytest -n auto
 
 # Verbose output
 pytest -v
-
-# Show print statements
-pytest -s
 ```
 
-## 6. Coverage Goals
+## 7. Test Fixtures
 
-**Minimum coverage targets**:
-- Overall: 90%+
-- Core algorithm (tui-delta.py): 95%+
-- Critical paths (matching, finalization): 100%
+### 7.1 Fixture Files (`tests/fixtures/`)
 
-**What to test**:
-- ✅ All public methods
-- ✅ All error conditions
-- ✅ All edge cases
-- ✅ Algorithm invariants
-- ✅ Memory bounds
-- ✅ Determinism
+**handcrafted_cases.json**: Manually crafted test cases with known patterns
+**edge_cases.json**: Boundary condition cases
+**random_cases.json**: Mixed content scenarios
 
-**What not to test**:
-- ❌ CLI formatting (tested separately)
-- ❌ External dependencies (mocked)
-- ❌ Implementation details (test behavior, not internals)
+Each fixture includes:
+- `name`: Test case identifier
+- `description`: Human-readable description
+- `input_lines`: Input data
+- `expected_output_count`: Expected number of output lines
+- `profile`: Profile to use (minimal, generic, claude_code)
 
-## 7. Oracle Testing with Reference Implementation
+### 7.2 Shared Fixtures (`tests/conftest.py`)
 
-### 7.1 Concept
+- `temp_dir`: Temporary directory for test files
 
-Use a simple, obviously-correct implementation to precalculate expected output for random test cases. This validates that the optimized algorithm produces correct results.
+## 8. Coverage Goals
 
-### 7.2 Reference Implementation
+**Target: 90%+ line coverage for core components**
 
-**File**: `tests/oracle.py`
+**Core components:**
+- `clear_lines.py`: Line detection and marking
+- `consolidate_clears.py`: Block consolidation
+- `clear_rules.py`: Rule configuration and evaluation
+- `run.py`: Pipeline orchestration
 
-### 7.3 Oracle Tests
+**Not requiring full coverage:**
+- `cli.py`: CLI interface (tested via integration)
+- `tui_delta.py`: Template placeholder (not used)
 
-**File**: `tests/test_oracle.py`
+## 9. Test Execution Strategy
 
-### 7.4 Precomputed Test Cases
+### 9.1 Development Workflow
 
-**File**: `tests/fixtures/precomputed_cases.json`
+```bash
+# Quick validation during development
+pytest -m unit --tb=short
 
-```json
-{
-  "test_cases": [
-  ]
-}
+# Full validation before commit
+pytest
+
+# Coverage check
+pytest --cov=tui_delta --cov-report=term-missing
 ```
 
-**File**: `tests/test_precomputed.py`
+### 9.2 CI/CD Pipeline
 
-### 7.5 Generating Test Data
+```bash
+# Fast feedback
+pytest -m "unit and not slow"
 
-**Script**: `tests/generate_test_data.py`
+# Full test suite
+pytest --cov=tui_delta --cov-report=xml
+```
 
-### 7.6 Benefits of Oracle Testing
+## 10. Current Test Count
 
-1. **Confidence**: Validates correctness against simple, obviously correct implementation
-2. **Regression detection**: Precomputed cases catch unintended behavior changes
-3. **Coverage**: Random generation explores input space we might not think of
-4. **Documentation**: Test cases serve as examples of expected behavior
+**Total:** 47 tests adapted for tui-delta components
+- Unit tests: 22 (edge cases)
+- Property tests: 7 (invariants)
+- Comprehensive tests: 15 (fixtures)
+- Integration tests: 3 (pipeline)
 
-### 7.7 Oracle Limitations
+**Coverage areas:**
+- ✅ clear_lines module
+- ✅ clear_rules module
+- ✅ consolidate_clears module (basic)
+- ✅ Pipeline integration
+- ✅ CLI interface
+- ⚠️ Consolidate normalization patterns (needs expansion)
 
-- **Performance**: Oracle is O(TEMPLATE_PLACEHOLDER), so limited to smaller inputs
-- **For larger tests**: Use invariant checking instead of exact output matching
-- **Not for benchmarking**: Only for correctness validation
+## 11. Future Test Additions
 
-## 8. Random Test Data Generation
+**High priority:**
+- Consolidate normalization pattern tests
+- Profile-specific pattern matching tests
+- Error propagation in pipeline
+- Custom profile YAML validation
 
-### 8.1 TEMPLATE_PLACEHOLDER
+**Medium priority:**
+- Performance benchmarks
+- Memory usage validation
+- Large file handling
+- Unicode and special character handling
 
----
-
-## Future Feature Testing Plans
-
-### TEMPLATE_PLACEHOLDER
-
----
-
-## Next Steps
-
-TEMPLATE_PLACEHOLDER
-
----
-
-## Current Coverage Status
-
-**Date**: TEMPLATE_PLACEHOLDER
-**Stage**: TEMPLATE_PLACEHOLDER
-
-### Overall Metrics
-
-- **Total Tests**: TEMPLATE_PLACEHOLDER
-- **Overall Coverage**: TEMPLATE_PLACEHOLDER
-- **Test-to-Code Ratio**: TEMPLATE_PLACEHOLDER
+**Low priority:**
+- Documentation example validation
+- MkDocs build testing (already exists)

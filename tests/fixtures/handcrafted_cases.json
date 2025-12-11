@@ -1,10 +1,27 @@
 [
   {
-    "name": "TEMPLATE_PLACEHOLDER",
-    "description": "TEMPLATE_PLACEHOLDER",
-    "TEMPLATE_PLACEHOLDER": 0,
-    "generator": {
-      "type": "handcrafted"
-      }
+    "name": "simple_clear",
+    "description": "Simple 3-line clear operation",
+    "input_lines": [
+      "line1",
+      "line2",
+      "line3",
+      "\u001b[2K\u001b[2K\u001b[2K"
+    ],
+    "expected_output_count": 3,
+    "expected_clear_count": 2,
+    "profile": "minimal"
+  },
+  {
+    "name": "blank_boundary",
+    "description": "Blank line at boundary with protection",
+    "input_lines": [
+      "   ",
+      "content",
+      "\u001b[2K\u001b[2K"
+    ],
+    "expected_output_count": 1,
+    "expected_clear_count": 0,
+    "profile": "generic"
   }
 ]

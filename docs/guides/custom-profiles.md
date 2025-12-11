@@ -21,12 +21,12 @@ profiles:
 
 ### 1. Create a YAML File
 
-Create `my-profiles.yaml`:
+Create `my-profiles.yaml` with a custom profile:
 
 ```yaml
 profiles:
-  my_app:
-    description: "My TUI application"
+  test_profile:
+    description: "Test profile"
     clear_protections:
       - blank_boundary
     normalization_patterns: []
@@ -34,8 +34,10 @@ profiles:
 
 ### 2. Use with `--rules-file`
 
-```console
-$ tui-delta run --rules-file my-profiles.yaml -- ./myapp
+Pass the custom profile file with `--rules-file`:
+
+```bash
+tui-delta run --rules-file my-profiles.yaml --profile test_profile -- <command>
 ```
 
 ## Profile Fields
@@ -82,12 +84,6 @@ profiles:
     normalization_patterns: []
 ```
 
-Test it:
-
-```console
-$ tui-delta run --rules-file my-custom.yaml --profile my_custom -- ./myapp
-```
-
 ## Defining Patterns (Advanced)
 
 Normalization patterns define how to recognize and normalize lines. Example:
@@ -110,13 +106,17 @@ See `src/tui_delta/tui_profiles.yaml` for complete pattern examples.
 
 ## Testing Your Profile
 
-1. Run on sample session:
-   ```console
-   $ tui-delta run --rules-file my-profile.yaml -- ./myapp | less -R
-   ```
+<!-- interactive-only -->
+Test on your actual TUI application:
 
-2. Check output looks correct
-3. Adjust protections or patterns as needed
+```console
+$ tui-delta run --rules-file my-profile.yaml --profile my_custom \
+  -- ./myapp | less -R
+```
+
+Check output looks correct and adjust protections or patterns as needed.
+
+For AI assistants like Claude Code, see [AI Assistant Logging](../use-cases/ai-assistants/ai-assistants.md).
 
 ## Next Steps
 

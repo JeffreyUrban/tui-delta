@@ -72,8 +72,6 @@ nav:
       - Troubleshooting: guides/troubleshooting.md
   - Reference:
       - CLI: reference/cli.md
-      - TuiDelta: reference/tui-delta.md
-      - Library Usage: reference/library.md
   - About:
       - Algorithm: about/algorithm.md
       - Design Decisions: about/design-decisions.md

@@ -1,8 +1,10 @@
 """Sybil configuration for testing code examples in documentation."""
 
+import os
 import re
 import shutil
 import subprocess
+import sys
 from pathlib import Path
 
 from sybil import Sybil
@@ -24,10 +26,26 @@ def evaluate_console_block(example):
         <!-- verify-file: output.log expected: expected-output.log -->
         $ command > output.log
 
+    Skip testing with:
+        <!-- skip-test -->
+        ```console
+        $ command that should not be tested
+        ```
+
     The expected file is compared against the generated output file.
 
     Commands are run from docs/examples/fixtures/ directory.
     """
+    # Check for interactive-only marker in the raw document before this block
+    raw_content = Path(example.path).read_text()
+    lines_before = raw_content[: example.region.start].split("\n")
+
+    # Check last 5 lines before block for skip marker
+    for line in reversed(lines_before[-5:]):
+        if "interactive-only" in line.lower():
+            # Skip this test - command requires interactive TUI
+            return
+
     # Get the fixtures directory - search upward from the file location
     current_path = Path(example.path).parent
     fixtures_dir = None
@@ -103,6 +121,11 @@ def evaluate_console_block(example):
             expected_output = "\n".join(expected_lines)
 
             # Run the command from fixtures directory
+            # Add venv bin to PATH for tui-delta and other installed commands
+            env = os.environ.copy()
+            venv_bin = Path(sys.executable).parent
+            env['PATH'] = f"{venv_bin}:{env.get('PATH', '')}"
+
             try:
                 result = subprocess.run(
                     command,
@@ -111,6 +134,7 @@ def evaluate_console_block(example):
                     capture_output=True,
                     text=True,
                     timeout=10,
+                    env=env,
                 )
 
                 # Check exit code
@@ -382,6 +406,9 @@ def pytest_sessionfinish(session, exitstatus):
         "test-output*.txt",
         "job-stats.json",
         "*-stats.json",
+        "session-*.log",  # Timestamped session logs
+        "daily-*.log",    # Daily logs
+        "full-session.log",  # Debug logs
     ]
     for pattern in transient_patterns:
         for fixtures_dir in docs_dir.rglob("fixtures"):

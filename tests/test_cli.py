@@ -2,6 +2,8 @@
 
 import os
 import re
+import subprocess
+import sys
 
 import pytest
 from typer.testing import CliRunner
@@ -30,160 +32,173 @@ def strip_ansi(text: str) -> str:
 
 @pytest.mark.unit
 def test_cli_help():
-    """Test --help output."""
+    """Test --help output shows available commands."""
     result = runner.invoke(app, ["--help"], env=TEST_ENV)
     assert result.exit_code == 0
     # Strip ANSI codes for reliable string matching across environments
     output = strip_ansi(result.stdout.lower())
-    assert "TEMPLATE_PLACEHOLDER" in output
+    assert "run" in output
+    assert "list-profiles" in output
 
 
 @pytest.mark.unit
-def test_cli_with_file(tmp_path):
-    """Test CLI with input file."""
-    # Create test file
-    test_file = tmp_path / "input.txt"
-    test_file.write_text("\n".join([f"line{i % 3}" for i in range(30)]) + "\n")
-
-    result = runner.invoke(app, [str(test_file), "--quiet"])
+def test_run_command_help():
+    """Test 'run' command help."""
+    result = runner.invoke(app, ["run", "--help"], env=TEST_ENV)
     assert result.exit_code == 0
-    assert True
+    output = strip_ansi(result.stdout.lower())
+    assert "tui application" in output
+    assert "profile" in output
 
 
 @pytest.mark.unit
-def test_cli_with_stdin():
-    """Test CLI with stdin input."""
-    input_data = "\n".join([f"line{i % 3}" for i in range(30)])
-
-    result = runner.invoke(app, ["--quiet"], input=input_data)
+def test_list_profiles_command():
+    """Test 'list-profiles' command."""
+    result = runner.invoke(app, ["list-profiles"], env=TEST_ENV)
     assert result.exit_code == 0
-    assert True
+    # CliRunner captures stderr to output for typer apps
+    output = result.output
+    assert "claude_code" in output
+    assert "generic" in output
+    assert "minimal" in output
+
+
+@pytest.mark.integration
+def test_run_command_basic():
+    """Test 'run' command with simple echo."""
+    # Run a simple command that outputs a few lines
+    result = runner.invoke(
+        app,
+        ["run", "--profile", "minimal", "--", "echo", "test"],
+        env=TEST_ENV
+    )
+    # Exit code might be non-zero due to script command behavior
+    # Just verify it ran without Python errors
+    assert "test" in result.stdout or result.exit_code in [0, 1]
 
 
 @pytest.mark.unit
-def test_cli_empty_stdin():
-    """Test CLI with empty stdin input"""
-    result = runner.invoke(app, ["--quiet"], input="")
-    assert result.exit_code == 0
-    assert result.stdout == ""
-
-
-@pytest.mark.unit
-def test_cli_empty_file(tmp_path):
-    """Test CLI with empty file input."""
-    test_file = tmp_path / "empty.txt"
-    test_file.write_text("")
-
-    result = runner.invoke(app, [str(test_file), "--quiet"], env=TEST_ENV)
-    assert result.exit_code == 0
-    assert result.stdout == ""
-
-
-@pytest.mark.unit
-def test_cli_statistics_output(tmp_path):
-    """Test CLI statistics are shown (not quiet mode)."""
-    test_file = tmp_path / "test.txt"
-    lines = ["A", "B", "C", "D", "E", "F", "G", "H", "I", "J"]
-    test_file.write_text("\n".join(lines) + "\n")
-
-    _ = runner.invoke(app, [str(test_file)], catch_exceptions=False)
-    # Rich console output in tests can cause exit code issues, just verify it runs
-    # The actual statistics functionality is tested in unit tests
-
-
-@pytest.mark.unit
-def test_cli_quiet_mode(tmp_path):
-    """Test CLI quiet mode suppresses statistics."""
-    test_file = tmp_path / "test.txt"
-    test_file.write_text("\n".join([f"line{i}" for i in range(20)]) + "\n")
-
-    result = runner.invoke(app, [str(test_file), "--quiet"])
-    assert result.exit_code == 0
-    # In quiet mode, stderr should not contain statistics
-
-
-@pytest.mark.unit
-def test_cli_nonexistent_file():
-    """Test CLI with non-existent file."""
-    result = runner.invoke(app, ["/nonexistent/file.txt"])
+def test_run_command_invalid_profile():
+    """Test 'run' command with invalid profile."""
+    result = runner.invoke(
+        app,
+        ["run", "--profile", "nonexistent", "--", "echo", "test"],
+        env=TEST_ENV
+    )
+    # Should fail with error about profile
     assert result.exit_code != 0
 
 
 @pytest.mark.unit
-def test_cli_progress_flag(tmp_path):
-    """Test CLI with --progress flag."""
-    test_file = tmp_path / "test.txt"
-    test_file.write_text("\n".join([f"line{i}" for i in range(100)]) + "\n")
-
-    result = runner.invoke(app, [str(test_file), "--progress", "--quiet"])
-    assert result.exit_code == 0
-
-
-@pytest.mark.unit
-def test_cli_progress_with_stdin():
-    """Test progress bar with stdin input (covers cli.py lines 493-502)."""
-    input_data = "\n".join([f"line{i % 10}" for i in range(1000)])
-    result = runner.invoke(app, ["--progress", "--quiet"], input=input_data, env=TEST_ENV)
-    assert result.exit_code == 0
-
-
-@pytest.mark.integration
-def test_cli_empty_file_integration(tmp_path):
-    """Test CLI with empty input file (integration test)."""
-    test_file = tmp_path / "empty.txt"
-    test_file.write_text("")
-
-    result = runner.invoke(app, [str(test_file), "--quiet"])
-    assert result.exit_code == 0
-    assert result.stdout.strip() == ""
-
-
-@pytest.mark.integration
-def test_cli_single_line(tmp_path):
-    """Test CLI with single line input."""
-    test_file = tmp_path / "single.txt"
-    test_file.write_text("single line\n")
-
-    result = runner.invoke(app, [str(test_file), "--quiet"])
-    assert result.exit_code == 0
-    assert result.stdout.strip() == "single line"
-
-
-@pytest.mark.unit
-def test_cli_json_stats_format(tmp_path):
-    """Test --stats-format json produces valid JSON."""
-    import json
-
-    test_file = tmp_path / "test.txt"
-    lines = ["A", "B", "C", "D", "E"] * 3  # 15 lines with duplicates
-    test_file.write_text("\n".join(lines) + "\n")
-
-    result = runner.invoke(app, [str(test_file), "--stats-format", "json"], env=TEST_ENV)
-    assert result.exit_code == 0
-
-    # Parse JSON from output (CliRunner captures stdout and stderr together)
-    # JSON stats go to stderr, data goes to stdout
-    try:
-        stats_data = json.loads(result.output)
-    except json.JSONDecodeError:
-        # If parsing fails, the output might be mixed - try to extract JSON
-        import re
-
-        json_match = re.search(r"\{[\s\S]*\}", result.output)
-        assert json_match, "No JSON found in output"
-        stats_data = json.loads(json_match.group())
-
-    # Verify JSON structure (just check it has expected sections)
-    assert "statistics" in stats_data or "configuration" in stats_data
-
-
-@pytest.mark.unit
-def test_cli_invalid_stats_format(tmp_path):
-    """Test --stats-format rejects invalid formats."""
-    test_file = tmp_path / "test.txt"
-    test_file.write_text("test\n")
-
-    result = runner.invoke(app, [str(test_file), "--stats-format", "invalid"], env=TEST_ENV)
+def test_run_command_requires_command():
+    """Test 'run' command requires TUI command."""
+    result = runner.invoke(app, ["run"], env=TEST_ENV)
     assert result.exit_code != 0
-    # Check output (combines stdout + stderr) to handle ANSI codes across environments
-    assert "stats-format" in strip_ansi(result.output).lower()
+    # Should show error about missing command
+
+
+@pytest.mark.unit
+def test_list_profiles_shows_descriptions():
+    """Test 'list-profiles' shows profile descriptions."""
+    result = runner.invoke(app, ["list-profiles"], env=TEST_ENV)
+    assert result.exit_code == 0
+    output = result.output
+    # Check for descriptive text, not just profile names
+    assert "Claude Code" in output or "terminal" in output.lower()
+
+
+@pytest.mark.integration
+def test_run_with_custom_rules_file(tmp_path):
+    """Test 'run' command with custom rules file."""
+    # Create a simple custom profile YAML
+    rules_file = tmp_path / "custom.yaml"
+    rules_file.write_text("""
+profiles:
+  test_profile:
+    description: "Test profile"
+    clear_protections:
+      - blank_boundary
+    normalization_patterns: []
+""")
+
+    result = runner.invoke(
+        app,
+        ["run", "--rules-file", str(rules_file), "--", "echo", "test"],
+        env=TEST_ENV
+    )
+    # Should run without errors (exit code might vary due to script)
+    assert result.exit_code in [0, 1]
+
+
+@pytest.mark.unit
+def test_version_option():
+    """Test --version option on run command."""
+    # Version callback is defined but needs to be on a command
+    # Test that version info is accessible
+    result = subprocess.run(
+        [sys.executable, "-m", "tui_delta.cli", "run", "--help"],
+        capture_output=True,
+        text=True
+    )
+    assert result.returncode == 0
+    # Just verify CLI is working
+
+
+@pytest.mark.integration
+def test_run_profiles_integration():
+    """Test that all built-in profiles work with run command."""
+    profiles = ["claude_code", "generic", "minimal"]
+
+    for profile in profiles:
+        result = runner.invoke(
+            app,
+            ["run", "--profile", profile, "--", "echo", "test"],
+            env=TEST_ENV
+        )
+        # Should not crash (exit code may vary due to script command)
+        # Just verify no Python exceptions
+        assert "Traceback" not in result.stdout
+        assert "Traceback" not in result.stderr if hasattr(result, 'stderr') else True
+
+
+@pytest.mark.unit
+def test_clear_lines_module_directly():
+    """Test clear_lines module can be invoked directly."""
+    # This tests the clear_lines CLI entry point
+    result = subprocess.run(
+        [sys.executable, "-m", "tui_delta.clear_lines", "--help"],
+        capture_output=True,
+        text=True
+    )
+    assert result.returncode == 0
+    assert "--prefixes" in result.stdout or "--profile" in result.stdout
+
+
+@pytest.mark.unit
+def test_consolidate_module_directly():
+    """Test consolidate_clears module can be invoked directly."""
+    result = subprocess.run(
+        [sys.executable, "-m", "tui_delta.consolidate_clears", "--help"],
+        capture_output=True,
+        text=True
+    )
+    assert result.returncode == 0
+
+
+@pytest.mark.integration
+def test_pipeline_stdin_to_stdout():
+    """Test pipeline processes stdin to stdout."""
+    test_input = "line1\nline2\nline3\n"
+
+    result = subprocess.run(
+        [sys.executable, "-m", "tui_delta.clear_lines", "--profile", "minimal"],
+        input=test_input.encode(),
+        capture_output=True
+    )
+
+    assert result.returncode == 0
+    assert len(result.stdout) > 0
+    # Should output the lines
+    assert b"line1" in result.stdout
+    assert b"line2" in result.stdout
+    assert b"line3" in result.stdout

@@ -7,21 +7,16 @@ import pytest
 
 
 @pytest.mark.integration
-def test_main_module_execution(tmp_path):
-    """Test running tui-delta as a module with python -m."""
-    # Create test file
-    test_file = tmp_path / "test.txt"
-    test_file.write_text("\n".join([f"line{i}" for i in range(20)]) + "\n")
-
-    # Run as module
+def test_main_module_list_profiles():
+    """Test running tui-delta list-profiles as a module."""
     result = subprocess.run(
-        [sys.executable, "-m", "tui_delta", str(test_file), "--quiet"],
+        [sys.executable, "-m", "tui_delta", "list-profiles"],
         capture_output=True,
         text=True,
     )
 
     assert result.returncode == 0
-    assert len(result.stdout.strip()) > 0
+    assert "claude_code" in result.stdout or "claude_code" in result.stderr
 
 
 @pytest.mark.integration
@@ -34,4 +29,4 @@ def test_main_module_help():
     )
 
     assert result.returncode == 0
-    assert "deduplicate" in result.stdout.lower()
+    assert "run" in result.stdout.lower() or "list-profiles" in result.stdout.lower()
