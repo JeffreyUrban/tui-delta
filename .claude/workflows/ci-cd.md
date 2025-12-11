@@ -34,11 +34,11 @@ jobs:
   quality:
     runs-on: ubuntu-latest
     steps: [...]
-  
+
   link-check:
     runs-on: ubuntu-latest
     steps: [...]
-  
+
   test:
     needs: [quality, link-check]  # Sequential dependency
     runs-on: ubuntu-latest
