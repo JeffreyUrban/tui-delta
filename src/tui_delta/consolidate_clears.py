@@ -28,11 +28,11 @@ import sys
 import tempfile
 from enum import Enum
 from pathlib import Path
-from typing import Optional
+from typing import Any, Optional
 
 import typer
 import yaml
-from patterndb_yaml import PatterndbYaml
+from patterndb_yaml import PatterndbYaml  # type: ignore[import-untyped]
 from rich.console import Console
 from rich.text import Text
 
@@ -60,7 +60,7 @@ def _create_rules_file_from_profiles() -> Path:
     all_patterns = config.get("patterns", {})
 
     # Convert all patterns from dict to rules list format
-    rules = []
+    rules: list[dict[str, Any]] = []
     for pattern_name, pattern_def in all_patterns.items():
         # Add 'name' field for rules list format
         rule = {"name": pattern_name, **pattern_def}
@@ -137,7 +137,7 @@ def _char_diff(old_line: str, new_line: str) -> Text:
     opcodes = list(matcher.get_opcodes())
     i = 0
     while i < len(opcodes):
-        tag, i1, i2, j1, j2 = opcodes[i]
+        tag, _i1, _i2, j1, j2 = opcodes[i]
 
         if tag == "equal":
             diff_text.append(new_line[j1:j2])
@@ -244,7 +244,7 @@ def _render_component_sequence(components: list) -> str:
     Returns:
         Concatenated text representation
     """
-    result = []
+    result: list[str] = []
     for comp in components:
         if "text" in comp:
             result.append(comp["text"])
@@ -310,10 +310,10 @@ def _extract_sequence_block(
     if not sequence_configs or not sequence_markers:
         return lines, [], normalized_lines, []
 
-    non_sequence = []
-    sequence_block = []
-    non_sequence_norm = []
-    sequence_norm = []
+    non_sequence: list[str] = []
+    sequence_block: list[str] = []
+    non_sequence_norm: list[str] = []
+    sequence_norm: list[str] = []
 
     i = 0
     while i < len(lines):
