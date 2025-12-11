@@ -146,7 +146,11 @@ def test_run_profiles_integration():
         # Should not crash (exit code may vary due to script command)
         # Just verify no Python exceptions
         assert "Traceback" not in result.stdout
-        assert "Traceback" not in result.stderr if hasattr(result, "stderr") else True
+        # result.stderr may not be separately captured, check if available
+        try:
+            assert "Traceback" not in result.stderr
+        except (ValueError, AttributeError):
+            pass  # stderr not separately captured
 
 
 @pytest.mark.unit
@@ -157,7 +161,11 @@ def test_clear_lines_module_directly():
         [sys.executable, "-m", "tui_delta.clear_lines", "--help"], capture_output=True, text=True
     )
     assert result.returncode == 0
-    assert "--prefixes" in result.stdout or "--profile" in result.stdout
+    # Strip ANSI codes for robust string matching
+    import re
+
+    clean_output = re.sub(r"\x1b\[[0-9;]*[a-zA-Z]", "", result.stdout)
+    assert "--prefixes" in clean_output or "--profile" in clean_output
 
 
 @pytest.mark.unit

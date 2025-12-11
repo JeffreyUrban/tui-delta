@@ -37,6 +37,7 @@ Interact in terminal AND save to file simultaneously.
 
 ### Review Logged Session
 
+<!-- interactive-only -->
 ```console
 $ less -R session.log
 ```

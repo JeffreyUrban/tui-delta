@@ -65,6 +65,7 @@ See [AI Assistant Logging](../use-cases/ai-assistants/ai-assistants.md) for comp
 
 Logs preserve terminal formatting:
 
+<!-- interactive-only -->
 ```console
 $ less -R session.log
 ```
