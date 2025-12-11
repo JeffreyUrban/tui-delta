@@ -23,6 +23,7 @@ Log AI assistant sessions (Claude Code, Cline, Cursor, Aider, etc.) with:
 
 ## Quick Example
 
+<!-- interactive-only -->
 ```console
 $ tui-delta --profile claude_code -- claude code > session.log
 ```
