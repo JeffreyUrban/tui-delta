@@ -146,7 +146,11 @@ def test_run_profiles_integration():
         # Should not crash (exit code may vary due to script command)
         # Just verify no Python exceptions
         assert "Traceback" not in result.stdout
-        assert "Traceback" not in result.stderr if hasattr(result, "stderr") else True
+        # result.stderr may not be separately captured, check if available
+        try:
+            assert "Traceback" not in result.stderr
+        except (ValueError, AttributeError):
+            pass  # stderr not separately captured
 
 
 @pytest.mark.unit
