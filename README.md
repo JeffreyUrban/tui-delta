@@ -2,11 +2,11 @@
 
 **Run a TUI application (AI assistant sessions, et al) with real-time delta processing for monitoring and logging. Supports Claude Code.**
 
-A general-purpose TUI capture and logging utility created for efficiently logging AI assistant interactive sessions, where that remains the primary use case.
+A general-purpose TUI capture and logging utility created for efficiently logging AI assistant interactive sessions.
 
 **Why tui-delta?** Simpler utilities that strip screen control sequences result in substantial content loss. `tui-delta` intelligently processes terminal output to preserve all meaningful deltas while removing only redundancies, creating clean, complete logs suitable for real-time monitoring and archival.
 
-Fully supports Claude Code; other AI assistants (Cline, Cursor, Aider) expected to work with profile customization.
+Fully supports Claude Code; other AI assistants (Cline, Cursor, Aider) are expected to work with profile customization.
 
 [![PyPI version](https://img.shields.io/pypi/v/tui-delta.svg)](https://pypi.org/project/tui-delta/)
 [![Tests](https://github.com/JeffreyUrban/tui-delta/actions/workflows/test.yml/badge.svg)](https://github.com/JeffreyUrban/tui-delta/actions/workflows/test.yml)
