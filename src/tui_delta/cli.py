@@ -30,6 +30,30 @@ app = typer.Typer(
 console = Console(stderr=True)  # All output to stderr to preserve stdout for data
 
 
+def version_callback(value: bool) -> None:
+    """Print version and exit if --version flag is provided."""
+    if value:
+        typer.echo(f"tui-delta version {__version__}")
+        raise typer.Exit()
+
+
+@app.callback()
+def main(
+    version: Optional[bool] = typer.Option(
+        None,
+        "--version",
+        "-v",
+        callback=version_callback,
+        is_eager=True,
+        help="Show version and exit",
+    ),
+) -> None:
+    """
+    Run TUI applications with real-time delta processing for monitoring and logging AI assistant sessions.
+    """
+    pass
+
+
 @app.command()
 def run(
     command: list[str] = typer.Argument(
