@@ -28,7 +28,7 @@ import sys
 import tempfile
 from enum import Enum
 from pathlib import Path
-from typing import Any, Optional
+from typing import Any, Optional, Union
 
 import typer
 import yaml
@@ -170,7 +170,9 @@ def _char_diff(old_line: str, new_line: str) -> Text:
     return diff_text
 
 
-def _match_pattern_components(line: str, pattern_components: list) -> tuple[bool, dict]:
+def _match_pattern_components(
+    line: str, pattern_components: list[dict[str, Any]]
+) -> tuple[bool, dict[str, Any]]:
     """
     Generic pattern matcher.
 
@@ -184,7 +186,7 @@ def _match_pattern_components(line: str, pattern_components: list) -> tuple[bool
     line_clean = ANSI_RE.sub("", line)
 
     pos = 0  # Current position in line_clean
-    fields = {}  # Extracted field values
+    fields: dict[str, Any] = {}  # Extracted field values
 
     for component in pattern_components:
         if pos > len(line_clean):
@@ -234,7 +236,7 @@ def _match_pattern_components(line: str, pattern_components: list) -> tuple[bool
     return True, fields
 
 
-def _render_component_sequence(components: list) -> str:
+def _render_component_sequence(components: list[dict[str, Any]]) -> str:
     """
     Render a sequence of pattern components to their literal text.
 
@@ -256,7 +258,7 @@ def _render_component_sequence(components: list) -> str:
 
 def _print_prefixed_line(
     prefix: str,
-    line: Text | str,
+    line: Union[Text, str],
     console: Optional[Console],
     style: Optional[str] = None,
 ) -> None:
@@ -286,7 +288,10 @@ def _print_prefixed_line(
 
 
 def _extract_sequence_block(
-    lines: list[str], normalized_lines: list[str], sequence_configs: dict, sequence_markers: set
+    lines: list[str],
+    normalized_lines: list[str],
+    sequence_configs: Optional[dict[str, Any]],
+    sequence_markers: Optional[set[str]],
 ) -> tuple[list[str], list[str], list[str], list[str]]:
     """
     Extract multi-line sequences from a block, separating them from non-sequence lines.
@@ -368,9 +373,11 @@ def _extract_sequence_block(
     return non_sequence, sequence_block, non_sequence_norm, sequence_norm
 
 
-def normalize(norm_engine, lines: list[str]) -> list[str]:
+def normalize(norm_engine: Optional[PatterndbYaml], lines: list[str]) -> list[str]:  # type: ignore[valid-type]
     """Normalize lines using optimized batch API (no StringIO overhead)."""
-    return norm_engine.normalize_lines(lines)
+    if norm_engine is None:
+        return lines
+    return norm_engine.normalize_lines(lines)  # type: ignore[no-any-return]
 
 
 def output_diff(
@@ -379,10 +386,10 @@ def output_diff(
     prefix: str,
     console: Optional[Console] = None,
     use_diff: bool = False,
-    norm_engine: PatterndbYaml = None,
+    norm_engine: Optional[PatterndbYaml] = None,  # type: ignore[valid-type]
     buffered_choices: Optional[list[tuple[str, str]]] = None,
-    sequence_configs: Optional[dict] = None,
-    sequence_markers: Optional[set] = None,
+    sequence_configs: Optional[dict[str, Any]] = None,
+    sequence_markers: Optional[set[str]] = None,
 ) -> list[str]:
     """
     Output differences between two cleared blocks using proper diff algorithm.
@@ -415,10 +422,10 @@ def output_diff(
 
     # Only extract sequences if we found sequence markers
     if has_sequences:
-        prev_non_seq, prev_seq, prev_non_seq_norm, prev_seq_norm = _extract_sequence_block(
+        prev_non_seq, _prev_seq, prev_non_seq_norm, _prev_seq_norm = _extract_sequence_block(
             prev_lines, prev_normalized, sequence_configs, sequence_markers
         )
-        curr_non_seq, curr_seq, curr_non_seq_norm, curr_seq_norm = _extract_sequence_block(
+        curr_non_seq, curr_seq, curr_non_seq_norm, _curr_seq_norm = _extract_sequence_block(
             curr_lines, curr_normalized, sequence_configs, sequence_markers
         )
     else:
@@ -489,9 +496,9 @@ def output_diff(
 def _output_first_cleared_block(
     current_cleared_block: list[str],
     current_prefix: str,
-    norm_engine: PatterndbYaml,
-    sequence_configs: Optional[dict],
-    sequence_markers: Optional[set],
+    norm_engine: Optional[PatterndbYaml],  # type: ignore[valid-type]
+    sequence_configs: Optional[dict[str, Any]],
+    sequence_markers: Optional[set[str]],
     buffered_choices: list[tuple[str, str]],
 ) -> None:
     """
@@ -523,10 +530,10 @@ def _flush_pending_cleared_block(
     current_prefix: str,
     console: Optional[Console],
     use_diff: bool,
-    norm_engine: PatterndbYaml,
+    norm_engine: Optional[PatterndbYaml],  # type: ignore[valid-type]
     buffered_choices: list[tuple[str, str]],
-    sequence_configs: Optional[dict],
-    sequence_markers: Optional[set],
+    sequence_configs: Optional[dict[str, Any]],
+    sequence_markers: Optional[set[str]],
 ) -> None:
     """
     Flush a pending cleared block according to whether this is the first block in a
@@ -603,9 +610,9 @@ def main(
     module_dir = Path(__file__).parent
     profiles_path = module_dir / "tui_profiles.yaml"
 
-    norm_engine = None
-    sequence_configs = {}
-    sequence_markers = set()
+    norm_engine: Optional[PatterndbYaml] = None  # type: ignore[valid-type]
+    sequence_configs: dict[str, Any] = {}
+    sequence_markers: set[str] = set()
     rules_path = None
 
     if profiles_path.exists():
