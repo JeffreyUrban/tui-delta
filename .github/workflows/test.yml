@@ -76,6 +76,15 @@ jobs:
         with:
           python-version: ${{ matrix.python-version }}
 
+      - name: Install system dependencies (syslog-ng)
+        timeout-minutes: 3
+        run: |
+          wget -qO - https://ose-repo.syslog-ng.com/apt/syslog-ng-ose-pub.asc | sudo gpg --dearmor -o /etc/apt/keyrings/syslog-ng-ose.gpg
+          echo "deb [signed-by=/etc/apt/keyrings/syslog-ng-ose.gpg] https://ose-repo.syslog-ng.com/apt/ stable ubuntu-noble" | sudo tee /etc/apt/sources.list.d/syslog-ng-ose.list
+          sudo apt-get update
+          sudo apt-get install -y syslog-ng-core
+          syslog-ng --version
+
       - name: Install dependencies
         run: |
           python -m pip install --upgrade pip
