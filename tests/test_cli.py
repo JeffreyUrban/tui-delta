@@ -157,7 +157,11 @@ def test_clear_lines_module_directly():
         [sys.executable, "-m", "tui_delta.clear_lines", "--help"], capture_output=True, text=True
     )
     assert result.returncode == 0
-    assert "--prefixes" in result.stdout or "--profile" in result.stdout
+    # Strip ANSI codes for robust string matching
+    import re
+
+    clean_output = re.sub(r"\x1b\[[0-9;]*[a-zA-Z]", "", result.stdout)
+    assert "--prefixes" in clean_output or "--profile" in clean_output
 
 
 @pytest.mark.unit
