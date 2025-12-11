@@ -1,5 +1,3 @@
-# ⚠️ Template doc: Testing disabled ⚠️
-
 # Contributing to tui-delta
 
 Thank you for your interest in contributing to tui-delta! This guide will help you get started.

@@ -2,16 +2,24 @@
 
 **Run a TUI application (AI assistant sessions, et al) with real-time delta processing for monitoring and logging. Supports Claude Code.**
 
-`tui-delta` captures and logs AI assistant interactive sessions efficiently, streaming all meaningfully different content exactly as shown in the terminal.
+A general-purpose TUI capture and logging utility created for efficiently logging AI assistant interactive sessions.
+
+## Why tui-delta?
+
+**Simpler utilities lose content.** Because TUI applications update the display by erasing content, simpler TUI logging utilities that fast forward through the session capture only the final screen state and miss most of the session's interactions, work, and status indications.
+
+**tui-delta preserves all meaningful deltas.** Intelligently processes terminal output to maintain all meaningful content while removing only redundant redraws.
+
+Captures and logs TUI applications efficiently, streaming all meaningfully different content in real-time.
 
 ## Primary Use Case
 
 Log AI assistant sessions (Claude Code, Cline, Cursor, Aider, etc.) with:
 
+- **Complete capture** - All meaningful content preserved
 - **Real-time streaming** - Monitor sessions as they run
-- **Clean output** - Removes screen control sequences and redundant redraws
-- **Preserves appearance** - Logs viewable with `less` or `less -R` (system-dependent) show original formatting
-- **Efficient capture** - Outputs all ephemeral content while deduplicating redundant output
+- **Clean output** - Removes only redundant redraws, not meaningful content
+- **Preserves appearance** - Logs viewable with `less -R` show original formatting
 
 ## Quick Example
 
