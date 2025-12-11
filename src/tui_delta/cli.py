@@ -50,7 +50,7 @@ def main(
 @app.command()
 def run(
     command: list[str] = typer.Argument(
-        ...,
+        ...,  # type: ignore[arg-type]  # Ellipsis is valid Typer syntax for required args
         help="TUI command to run (e.g., 'claude code' or 'npm test')",
     ),
     profile: Optional[str] = typer.Option(

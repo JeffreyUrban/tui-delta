@@ -21,7 +21,7 @@ import re
 import sys
 from collections import deque
 from pathlib import Path
-from typing import Optional
+from typing import Iterator, Optional, cast
 
 import typer
 
@@ -198,7 +198,7 @@ def _format_line(
     Returns:
         Formatted line string
     """
-    parts = []
+    parts: list[str] = []
     if show_prefixes:
         parts.append(prefix)
     if show_line_numbers:
@@ -273,7 +273,10 @@ def main(
     else:
         input_stream = sys.stdin.buffer
     # Wrap to decode lines
-    line_iterator = (line.decode("utf-8", errors="replace") for line in input_stream)
+    line_iterator = cast(
+        Iterator[str],
+        (line.decode("utf-8", errors="replace") for line in input_stream),  # type: ignore[union-attr]
+    )
 
     try:
         # Read first line
