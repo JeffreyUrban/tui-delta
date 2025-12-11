@@ -6,7 +6,7 @@ from pathlib import Path
 
 import pytest
 
-from tui_delta.run import run_tui_with_pipeline, build_pipeline_commands
+from tui_delta.run import build_pipeline_commands
 
 # Path to test fixtures
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
@@ -40,13 +40,11 @@ with open(fixture_path, "rb") as f:
         if not REAL_CLAUDE_SESSION.exists():
             pytest.skip(f"Real Claude Code session fixture not found: {REAL_CLAUDE_SESSION}")
 
-        output_file = tmp_path / "output.txt"
-
         # Capture stdout by redirecting in subprocess
         test_script = tmp_path / "test_runner.py"
         test_script.write_text(f'''
 import sys
-sys.path.insert(0, r"{Path(__file__).parent.parent / 'src'}")
+sys.path.insert(0, r"{Path(__file__).parent.parent / "src"}")
 from tui_delta.run import run_tui_with_pipeline
 
 exit_code = run_tui_with_pipeline(
@@ -70,14 +68,15 @@ sys.exit(exit_code)
         assert len(output) > 0, "Pipeline produced no output"
 
         # Verify output is reasonable (not just whitespace)
-        lines = output.decode('utf-8', errors='replace').strip().split('\n')
+        lines = output.decode("utf-8", errors="replace").strip().split("\n")
         non_empty_lines = [line for line in lines if line.strip()]
         assert len(non_empty_lines) > 0, "Pipeline produced only empty lines"
 
         # Verify output is significantly smaller than input (compression from deduplication)
         input_size = REAL_CLAUDE_SESSION.stat().st_size
-        assert len(output) < input_size, \
+        assert len(output) < input_size, (
             f"Pipeline output ({len(output)}) should be smaller than input ({input_size})"
+        )
 
     def test_pipeline_commands_structure(self):
         """Test that build_pipeline_commands returns the correct pipeline structure."""
@@ -128,36 +127,65 @@ sys.exit(exit_code)
         # Build pipeline matching run.py's build_pipeline_commands for claude_code profile
         # Stage 1: clear_lines
         clear_lines_proc = subprocess.Popen(
-            [sys.executable, "-m", "tui_delta.clear_lines", "--prefixes", "--profile", "claude_code"],
-            stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            [
+                sys.executable,
+                "-m",
+                "tui_delta.clear_lines",
+                "--prefixes",
+                "--profile",
+                "claude_code",
+            ],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
 
         # Stage 2: consolidate_clears
         consolidate_proc = subprocess.Popen(
             [sys.executable, "-m", "tui_delta.consolidate_clears"],
-            stdin=clear_lines_proc.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            stdin=clear_lines_proc.stdout,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
         clear_lines_proc.stdout.close()
 
         # Stage 3: first uniqseq
         uniqseq1_proc = subprocess.Popen(
             [sys.executable, "-m", "uniqseq", "--track", r"^\+: ", "--quiet"],
-            stdin=consolidate_proc.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            stdin=consolidate_proc.stdout,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
         consolidate_proc.stdout.close()
 
         # Stage 4: cut -b 4- (strip prefix)
         cut_proc = subprocess.Popen(
             [sys.executable, "-c", "import sys; [print(line[3:], end='') for line in sys.stdin]"],
-            stdin=uniqseq1_proc.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            stdin=uniqseq1_proc.stdout,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
         uniqseq1_proc.stdout.close()
 
         # Stage 5: final uniqseq
         uniqseq2_proc = subprocess.Popen(
-            [sys.executable, "-m", "uniqseq", "--track", r"^\S", "--quiet",
-             "--max-history", "5", "--window-size", "1", "--max-unique-sequences", "0"],
-            stdin=cut_proc.stdout, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            [
+                sys.executable,
+                "-m",
+                "uniqseq",
+                "--track",
+                r"^\S",
+                "--quiet",
+                "--max-history",
+                "5",
+                "--window-size",
+                "1",
+                "--max-unique-sequences",
+                "0",
+            ],
+            stdin=cut_proc.stdout,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
         )
         cut_proc.stdout.close()
 
@@ -171,14 +199,14 @@ sys.exit(exit_code)
 
         # Compare byte-for-byte
         if actual_output != expected_output:
-            actual_lines = actual_output.decode('utf-8', errors='replace').splitlines()
-            expected_lines = expected_output.decode('utf-8', errors='replace').splitlines()
+            actual_lines = actual_output.decode("utf-8", errors="replace").splitlines()
+            expected_lines = expected_output.decode("utf-8", errors="replace").splitlines()
 
             # Find first difference
             for i, (actual_line, expected_line) in enumerate(zip(actual_lines, expected_lines)):
                 if actual_line != expected_line:
                     pytest.fail(
-                        f"Output differs from golden file at line {i+1}:\n"
+                        f"Output differs from golden file at line {i + 1}:\n"
                         f"Expected: {expected_line[:100]!r}\n"
                         f"Actual:   {actual_line[:100]!r}"
                     )

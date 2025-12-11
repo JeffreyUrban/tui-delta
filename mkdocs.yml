@@ -67,12 +67,9 @@ nav:
       - AI Assistant Logging: use-cases/ai-assistants/ai-assistants.md
   - Guides:
       - Custom Profiles: guides/custom-profiles.md
-      - Common Patterns: guides/common-patterns.md
-      - Performance: guides/performance.md
-      - Troubleshooting: guides/troubleshooting.md
   - Reference:
       - CLI: reference/cli.md
+      - Library Usage: reference/library.md
+      - API Reference: reference/tui-delta.md
   - About:
-      - Algorithm: about/algorithm.md
-      - Design Decisions: about/design-decisions.md
       - Contributing: about/contributing.md

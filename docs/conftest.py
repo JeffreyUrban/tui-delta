@@ -124,7 +124,7 @@ def evaluate_console_block(example):
             # Add venv bin to PATH for tui-delta and other installed commands
             env = os.environ.copy()
             venv_bin = Path(sys.executable).parent
-            env['PATH'] = f"{venv_bin}:{env.get('PATH', '')}"
+            env["PATH"] = f"{venv_bin}:{env.get('PATH', '')}"
 
             try:
                 result = subprocess.run(
@@ -407,7 +407,7 @@ def pytest_sessionfinish(session, exitstatus):
         "job-stats.json",
         "*-stats.json",
         "session-*.log",  # Timestamped session logs
-        "daily-*.log",    # Daily logs
+        "daily-*.log",  # Daily logs
         "full-session.log",  # Debug logs
     ]
     for pattern in transient_patterns:

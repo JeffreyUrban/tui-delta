@@ -1,5 +1,3 @@
-# ⚠️ Template doc: Testing disabled ⚠️
-
 # Contributing to tui-delta
 
 Thank you for your interest in contributing to tui-delta! This guide will help you get started.
@@ -21,7 +19,7 @@ Found a bug or have a feature request?
 
 **Command used**:
 ```bash
-tui-delta --TEMPLATE_PLACEHOLDER
+tui-delta --something -- some-app
 ```
 
 **Sample input** (first 20 lines):
@@ -90,43 +88,13 @@ pip install -e ".[dev]"
 pre-commit install
 ```
 
-**Run tests**:
-```bash
-# Run all tests
-pytest
-
-# Run specific test file
-pytest tests/test_deduplicator.py
-
-# Run with coverage
-pytest --cov=src --cov-report=html
-```
-
 #### Code Standards
 
 **Python code requirements**:
 
-1. **Type hints** for all function signatures:
-   ```python
-   def TEMPLATE_PLACEHOLDER(self, TEMPLATE_PLACEHOLDER, output: TextIO) -> None:
-       """Process TEMPLATE_PLACEHOLDER."""
-       pass
-   ```
+1. **Type hints** for all function signatures
 
-2. **Docstrings** for public functions/classes:
-   ```python
-   def TEMPLATE_PLACEHOLDER(TEMPLATE_PLACEHOLDER) -> TEMPLATE_PLACEHOLDER:
-       """
-       TEMPLATE_PLACEHOLDER.
-
-       Args:
-           TEMPLATE_PLACEHOLDER: TEMPLATE_PLACEHOLDER
-
-       Returns:
-           TEMPLATE_PLACEHOLDER
-       """
-       pass
-   ```
+2. **Docstrings** for public functions/classes
 
 3. **Named constants** instead of magic numbers:
    ```python
@@ -162,40 +130,6 @@ pytest --cov=src --cov-report=html
 - **Integration tests**: Test component interactions
 - **Feature tests**: Test complete features with fixtures
 
-**Writing tests**:
-```python
-import pytest
-from tui_delta import TuiDelta
-
-def test_TEMPLATE_PLACEHOLDER():
-    """Test that TEMPLATE_PLACEHOLDER."""
-    TEMPLATE_PLACEHOLDER = TuiDelta(TEMPLATE_PLACEHOLDER)
-
-    # Test input
-    TEMPLATE_PLACEHOLDER
-
-    # Process and collect output
-    output = TEMPLATE_PLACEHOLDER
-
-    # Verify
-    assert output == TEMPLATE_PLACEHOLDER
-```
-
-**Running specific tests**:
-```bash
-# Run by name pattern
-pytest -k "test_TEMPLATE_PLACEHOLDER"
-
-# Run specific file
-pytest tests/test_TEMPLATE_PLACEHOLDER.py
-
-# Run with verbose output
-pytest -v
-
-# Run and stop at first failure
-pytest -x
-```
-
 #### Submitting Pull Requests
 
 **Before submitting**:
@@ -221,16 +155,6 @@ pytest -x
    - Start with verb (Add, Fix, Update, Remove)
    - Keep first line under 50 characters
    - Add detailed description if needed
-
-   **Examples**:
-   ```
-   Add support for TEMPLATE_PLACEHOLDER
-
-   - Add --TEMPLATE_PLACEHOLDER option to CLI
-   - Support TEMPLATE_PLACEHOLDER
-   - Add tests for TEMPLATE_PLACEHOLDER
-   - Update documentation with examples
-   ```
 
 4. **Push and create PR**:
    ```bash
@@ -356,40 +280,6 @@ python -m cProfile -s cumulative -m tui-delta large-file.log
 4. **Document**: Add to user documentation
 5. **Submit**: Create PR
 
-**Example: Adding a new CLI option**
-
-1. **Add to CLI** (`src/tui-delta/cli.py`):
-   ```python
-   @app.command()
-   def main(
-       # ... existing options ...
-       my_option: int = typer.Option(
-           42,
-           "--my-option",
-           help="Description of what this does"
-       ),
-   ):
-       # Implementation
-   ```
-
-2. **Add to core** (`src/tui-delta/TEMPLATE_PLACEHOLDER.py`):
-   ```python
-   def __init__(self, my_option: int = 42):
-       self.my_option = my_option
-   ```
-
-3. **Add tests**:
-   ```python
-   def test_my_option():
-       dedup = TuiDelta(my_option=50)
-       # Test behavior
-   ```
-
-4. **Add documentation**:
-   - Feature page in `docs/features/my-feature/`
-   - Example in `docs/use-cases/`
-   - Update `docs/reference/cli.md`
-
 ### Code Review Process
 
 **What reviewers look for**:
@@ -407,27 +297,6 @@ python -m cProfile -s cumulative -m tui-delta large-file.log
 - Push updates to same branch
 
 ## Common Development Tasks
-
-### Adding a Test
-
-```bash
-# Create test file
-touch tests/test_new_feature.py
-
-# Write test
-cat > tests/test_new_feature.py << 'EOF'
-import pytest
-from tui_delta import TuiDelta
-
-def test_new_feature():
-    """Test the new feature."""
-    TEMPLATE_PLACEHOLDER = TuiDelta(new_option=True)
-    # Test code
-EOF
-
-# Run the new test
-pytest tests/test_new_feature.py -v
-```
 
 ### Adding Documentation
 

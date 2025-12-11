@@ -2,9 +2,22 @@
 
 Get started with `tui-delta` in 5 minutes.
 
+## Prerequisites
+
+!!! warning "syslog-ng Required"
+    `tui-delta` requires syslog-ng to be installed. See the [Installation Guide](installation.md) for detailed setup instructions.
+
 ## Installation
 
+**Recommended (automatically installs syslog-ng):**
 ```bash
+brew tap jeffreyurban/tui-delta
+brew install tui-delta
+```
+
+**Alternative (requires manual syslog-ng installation):**
+```bash
+# First install syslog-ng (see Installation Guide), then:
 pip install tui-delta
 ```
 
@@ -57,6 +70,25 @@ $ less -R session.log
 ```
 
 The `-R` flag preserves colors and formatting.
+
+### Plain Text Logs (Strip ANSI Formatting)
+
+For clean plain text logs without colors or formatting, pipe through a filter:
+
+**Using sed (most portable):**
+```bash
+tui-delta run -- claude code | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g' > clean.log
+```
+
+**Using ansifilter (recommended if available):**
+```bash
+# Install
+brew install ansifilter  # macOS
+apt install ansifilter   # Ubuntu/Debian
+
+# Use
+tui-delta run -- claude code | ansifilter > clean.log
+```
 
 ## Common Patterns
 

@@ -1,5 +1,3 @@
-# ⚠️ Template doc: Testing disabled ⚠️
-
 # Installation
 
 `tui-delta` can be installed via Homebrew, pipx, pip, or from source.
@@ -7,22 +5,35 @@
 ## Requirements
 
 - **Python 3.9 or higher** (for pip/pipx installations)
-- **Homebrew** (for macOS/Linux Homebrew installation)
+- **Homebrew** (for macOS/Linux Homebrew installation - automatically installs syslog-ng)
+- **syslog-ng 4.10.1+** (for pattern matching engine)
 
-`tui-delta` works on Linux, macOS, and Windows.
+!!! warning "syslog-ng Dependency"
+    `tui-delta` requires syslog-ng to be installed. See the [syslog-ng Installation Guide](../SYSLOG_NG_INSTALLATION.md) for platform-specific instructions.
 
-## Via Homebrew (macOS/Linux)
+    **Homebrew users:** syslog-ng is installed automatically as a dependency.
+
+    **pip/pipx users:** You must install syslog-ng separately from official repositories before using tui-delta.
+
+`tui-delta` works on Linux, macOS, and Windows (via WSL2).
+
+## Via Homebrew (macOS/Linux) - Recommended
 
 ```bash
 brew tap jeffreyurban/tui-delta
 brew install tui-delta
 ```
 
-Homebrew manages the Python dependency and provides easy updates via `brew upgrade`.
+**Automatically installs syslog-ng** as a dependency. Homebrew manages all dependencies and provides easy updates via `brew upgrade`.
 
 ## Via pipx (Cross-platform)
 
+!!! warning "Install syslog-ng first"
+    Before using pipx, you must install syslog-ng from official repositories.
+    See [syslog-ng Installation Guide](../SYSLOG_NG_INSTALLATION.md) for detailed instructions.
+
 ```bash
+# After installing syslog-ng (see link above):
 pipx install tui-delta
 ```
 
@@ -30,7 +41,12 @@ pipx install tui-delta
 
 ## Via pip
 
+!!! warning "Install syslog-ng first"
+    Before using pip, you must install syslog-ng from official repositories.
+    See [syslog-ng Installation Guide](../SYSLOG_NG_INSTALLATION.md) for detailed instructions.
+
 ```bash
+# After installing syslog-ng (see link above):
 pip install tui-delta
 ```
 
@@ -42,7 +58,7 @@ For development or the latest unreleased features:
 
 ```bash
 git clone https://github.com/JeffreyUrban/tui-delta.git
-cd tui-delta-workspace/tui-delta
+cd tui-delta
 pip install .
 ```
 
@@ -50,6 +66,7 @@ This installs `tui-delta` and its dependencies:
 
 - **typer** - CLI framework
 - **rich** - Terminal formatting and progress display
+- **pyyaml** - YAML parsing
 
 ## Development Installation
 
@@ -57,7 +74,7 @@ For contributing or modifying `tui-delta`, install in editable mode with develop
 
 ```bash
 git clone https://github.com/JeffreyUrban/tui-delta.git
-cd tui-delta-workspace/tui-delta
+cd tui-delta
 pip install -e ".[dev]"
 ```
 
@@ -66,7 +83,8 @@ Development dependencies include:
 - **pytest** - Test framework
 - **pytest-cov** - Code coverage
 - **ruff** - Linting and formatting
-- **pyright** - Type checking
+- **mypy** - Type checking
+- **types-pyyaml** - Type stubs for YAML
 - **pre-commit** - Git hooks for code quality
 
 ## Platform-Specific Notes
@@ -113,17 +131,6 @@ tui-delta --version
 tui-delta --help
 ```
 
-Try a quick test:
-
-```bash
-echo -e "TEMPLATE_PLACEHOLDER" | tui-delta --TEMPLATE_PLACEHOLDER
-```
-
-Expected output:
-```
-TEMPLATE_PLACEHOLDER
-```
-
 ## Upgrading
 
 ### Homebrew
@@ -147,7 +154,7 @@ pip install --upgrade tui-delta
 ### Source Installation
 
 ```bash
-cd tui-delta-workspace/tui-delta
+cd tui-delta
 git pull
 pip install --upgrade .
 ```
@@ -155,7 +162,7 @@ pip install --upgrade .
 For development installations:
 
 ```bash
-cd tui-delta-workspace/tui-delta
+cd tui-delta
 git pull
 pip install --upgrade -e ".[dev]"
 ```

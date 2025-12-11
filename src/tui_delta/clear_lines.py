@@ -17,10 +17,10 @@ FIFO terminology:
 - Downstream = toward output (old lines, removed from left/front)
 """
 
+import re
 import sys
 from collections import deque
 from pathlib import Path
-import re
 from typing import Optional
 
 import typer
@@ -29,7 +29,7 @@ from .clear_rules import ClearRules
 
 MAX_BUFFER_SIZE = 100
 
-CONTROL_LINES = '[bracketed_paste_on]', '[sync_output_off]'
+CONTROL_LINES = "[bracketed_paste_on]", "[sync_output_off]"
 
 
 def extract_osc_window_title(line: str) -> Optional[str]:
@@ -47,7 +47,7 @@ def extract_osc_window_title(line: str) -> Optional[str]:
     """
     # Match OSC window title: ESC ] 0 ; title BEL (or ST)
     # BEL is \x07, ST is ESC \
-    match = re.search(r'\x1b\](?:0|2);([^\x07\x1b]*?)(?:\x07|\x1b\\)', line)
+    match = re.search(r"\x1b\](?:0|2);([^\x07\x1b]*?)(?:\x07|\x1b\\)", line)
     if match:
         return match.group(1)
     return None
@@ -65,7 +65,7 @@ def count_clear_sequences(line: str) -> int:
     Returns:
         Number of clear line sequences found
     """
-    return line.count('\x1b[2K')
+    return line.count("\x1b[2K")
 
 
 def clear_lines(
@@ -75,7 +75,7 @@ def clear_lines(
     show_line_numbers: bool,
     clear_operation_count: int,
     rules: ClearRules,
-    next_line: Optional[str] = None
+    next_line: Optional[str] = None,
 ):
     """
     Clear lines from the end of the FIFO
@@ -111,10 +111,7 @@ def clear_lines(
 
     # Calculate actual clear count using rules
     actual_clear_count = rules.calculate_clear_count(
-        clear_count,
-        first_cleared_line,
-        first_sequence_line,
-        next_line
+        clear_count, first_cleared_line, first_sequence_line, next_line
     )
 
     # Limit to available lines
@@ -130,15 +127,17 @@ def clear_lines(
     if osc_title:
         window_title = f"[window-title:{osc_title}]"
     # Fallback to legacy annotation format
-    elif '[window-title-icon:' in clear_line_content or '[window-title:' in clear_line_content:
+    elif "[window-title-icon:" in clear_line_content or "[window-title:" in clear_line_content:
         # Extract the window title annotation
         # Note: content may contain [U+XXXX] tokens which have ] in them
         # Use non-greedy match to find the content until ][ or ]$
-        match = re.search(r'\[(window-title(?:-icon)?:.+?)](?:\[|$)', clear_line_content)
+        match = re.search(r"\[(window-title(?:-icon)?:.+?)](?:\[|$)", clear_line_content)
         if match:
             window_title = f"[{match.group(1)}]"
 
-    uncleared_count = len(fifo) - actual_clear_count - 1  # Lines to keep (excluding cleared lines and clear line)
+    uncleared_count = (
+        len(fifo) - actual_clear_count - 1
+    )  # Lines to keep (excluding cleared lines and clear line)
 
     # Determine prefix for cleared lines (alternates between \ and /)
     clear_prefix = "\\: " if clear_operation_count % 2 == 0 else "/: "
@@ -180,7 +179,9 @@ def clear_lines(
     fifo.popleft()  # Dispose of the clear line
 
 
-def _format_line(prefix: str, line_num: int, content: str, show_prefixes: bool, show_line_numbers: bool) -> str:
+def _format_line(
+    prefix: str, line_num: int, content: str, show_prefixes: bool, show_line_numbers: bool
+) -> str:
     """
     Format a line for output
 
@@ -208,39 +209,35 @@ app = typer.Typer()
 
 @app.command()
 def main(
-    input_file: Optional[typer.FileText] = typer.Argument(
-        None,
-        help="Input file (default: stdin)"
-    ),
+    input_file: Optional[typer.FileText] = typer.Argument(None, help="Input file (default: stdin)"),
     show_prefixes: bool = typer.Option(
         False,
         "--prefixes/--no-prefixes",
-        help="Show state prefixes (+: for kept, \\: and /: alternating for cleared, >: for control, )"
+        help=(
+            "Show state prefixes "
+            "(+: for kept, \\: and /: alternating for cleared, >: for control, )"
+        ),
     ),
     show_line_numbers: bool = typer.Option(
-        False,
-        "--line-numbers/--no-line-numbers", "-n/-N",
-        help="Show line numbers"
+        False, "--line-numbers/--no-line-numbers", "-n/-N", help="Show line numbers"
     ),
     buffer_size: int = typer.Option(
         MAX_BUFFER_SIZE,
-        "--buffer-size", "-b",
-        help="Maximum FIFO buffer size (limits memory usage for large files)"
+        "--buffer-size",
+        "-b",
+        help="Maximum FIFO buffer size (limits memory usage for large files)",
     ),
     profile: Optional[str] = typer.Option(
         None,
-        "--profile", "-p",
-        help="Clear rules profile (claude_code, generic, minimal, or custom). Default: claude_code"
+        "--profile",
+        "-p",
+        help="Clear rules profile (claude_code, generic, minimal, or custom). Default: claude_code",
     ),
     rules_file: Optional[Path] = typer.Option(
-        None,
-        "--rules-file",
-        help="Path to custom clear_rules.yaml file"
+        None, "--rules-file", help="Path to custom clear_rules.yaml file"
     ),
     list_profiles: bool = typer.Option(
-        False,
-        "--list-profiles",
-        help="List available profiles and exit"
+        False, "--list-profiles", help="List available profiles and exit"
     ),
 ):
     """
@@ -273,7 +270,7 @@ def main(
     else:
         input_stream = sys.stdin.buffer
     # Wrap to decode lines
-    line_iterator = (line.decode('utf-8', errors='replace') for line in input_stream)
+    line_iterator = (line.decode("utf-8", errors="replace") for line in input_stream)
 
     try:
         # Read first line
@@ -283,12 +280,12 @@ def main(
             return  # Empty input
 
         while True:
-            content = current_line.rstrip('\n')
+            content = current_line.rstrip("\n")
 
             # Try to read next line for lookahead
             try:
                 next_line = next(line_iterator)
-                next_line_content = next_line.rstrip('\n')
+                next_line_content = next_line.rstrip("\n")
             except StopIteration:
                 next_line_content = None
                 next_line = None
@@ -300,10 +297,18 @@ def main(
             # Support both raw ANSI (\x1b[K) and legacy annotations ([clear_line])
             clear_count = count_clear_sequences(content)
             if clear_count == 0:  # Fallback to legacy format
-                clear_count = content.count('[clear_line]')
+                clear_count = content.count("[clear_line]")
 
             if clear_count > 0:
-                clear_lines(fifo, clear_count, show_prefixes, show_line_numbers, clear_operation_count, rules, next_line_content)
+                clear_lines(
+                    fifo,
+                    clear_count,
+                    show_prefixes,
+                    show_line_numbers,
+                    clear_operation_count,
+                    rules,
+                    next_line_content,
+                )
                 clear_operation_count += 1
 
             while len(fifo) > buffer_size:
@@ -313,7 +318,9 @@ def main(
                 else:
                     prefix = "+: "
                 try:
-                    output = _format_line(prefix, line_num, content, show_prefixes, show_line_numbers)
+                    output = _format_line(
+                        prefix, line_num, content, show_prefixes, show_line_numbers
+                    )
                     print(output, flush=True)
                 except BrokenPipeError:
                     sys.stderr.close()

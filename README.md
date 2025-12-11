@@ -13,7 +13,11 @@
 
 **Run a TUI application (AI assistant sessions, et al) with real-time delta processing for monitoring and logging. Supports Claude Code.**
 
-Capture and log AI assistant interactive sessions efficiently, streaming all meaningfully different content exactly as shown in the terminal. Fully supports Claude Code; other AI assistants (Cline, Cursor, Aider) expected to work with profile customization. The pipeline removes screen control sequences, outputs ephemeral content, and deduplicates redundant output - creating clean, viewable logs suitable for real-time monitoring and archival.
+A general-purpose TUI capture and logging utility created for efficiently logging AI assistant interactive sessions, where that remains the primary use case.
+
+**Why tui-delta?** Simpler utilities that strip screen control sequences result in substantial content loss. `tui-delta` intelligently processes terminal output to preserve all meaningful deltas while removing only redundancies, creating clean, complete logs suitable for real-time monitoring and archival.
+
+Fully supports Claude Code; other AI assistants (Cline, Cursor, Aider) expected to work with profile customization.
 
 [![PyPI version](https://img.shields.io/pypi/v/tui-delta.svg)](https://pypi.org/project/tui-delta/)
 [![Tests](https://github.com/JeffreyUrban/tui-delta/actions/workflows/test.yml/badge.svg)](https://github.com/JeffreyUrban/tui-delta/actions/workflows/test.yml)
@@ -24,25 +28,43 @@ Capture and log AI assistant interactive sessions efficiently, streaming all mea
 
 ## Installation
 
-### Via Homebrew (macOS/Linux)
+**Requirements:** Python 3.9+, syslog-ng 4.10.1+
+
+> **⚠️ Important:** `tui-delta` requires syslog-ng to be installed from **official repositories** (distro defaults may be incompatible).
+>
+> See **[SYSLOG_NG_INSTALLATION.md](docs/SYSLOG_NG_INSTALLATION.md)** for platform-specific instructions.
+
+### Via Homebrew (macOS + Linux) - Recommended
 
 ```bash
 brew tap JeffreyUrban/tui-delta && brew install tui-delta
 ```
 
-Homebrew manages the Python dependency and provides easy updates via `brew upgrade`.
+**✅ Automatically installs syslog-ng** as a dependency. Homebrew manages all dependencies and provides easy updates via `brew upgrade`.
 
-### Via pipx (Cross-platform)
+### Via pipx (Alternative)
+
+> **⚠️ Manual Setup Required:** You must install syslog-ng separately before using pipx.
 
 ```bash
+# STEP 1: Install syslog-ng from official repos (REQUIRED)
+# See docs/SYSLOG_NG_INSTALLATION.md for your platform
+
+# STEP 2: Install tui-delta
 pipx install tui-delta
 ```
 
-[pipx](https://pipx.pypa.io/) installs in an isolated environment with global CLI access. Works on macOS, Linux, and Windows. Update with `pipx upgrade tui-delta`.
+[pipx](https://pipx.pypa.io/) installs in an isolated environment with global CLI access. Update with `pipx upgrade tui-delta`.
 
 ### Via pip
 
+> **⚠️ Manual Setup Required:** You must install syslog-ng separately before using pip.
+
 ```bash
+# STEP 1: Install syslog-ng from official repos (REQUIRED)
+# See docs/SYSLOG_NG_INSTALLATION.md for your platform
+
+# STEP 2: Install tui-delta
 pip install tui-delta
 ```
 
@@ -53,15 +75,15 @@ Use `pip` if you want to use tui-delta as a library in your Python projects.
 ```bash
 # Development installation
 git clone https://github.com/JeffreyUrban/tui-delta
-cd tui-delta-workspace/tui-delta
+cd tui-delta
 pip install -e ".[dev]"
 ```
 
-**Requirements:** Python 3.9+
+### Windows
 
-**IDE Configuration:**
-- **PyCharm**: Project settings are pre-configured in `.idea/` (source roots automatically set)
-- **VS Code**: Settings are pre-configured in `.vscode/settings.json` (includes pytest, ruff, pyright configuration)
+Windows is not currently supported. Consider using WSL2 (Windows Subsystem for Linux) and following the Linux installation instructions.
+
+**Requirements:** Python 3.9+, syslog-ng (installed automatically with Homebrew)
 
 ## Quick Start
 
@@ -72,7 +94,7 @@ pip install -e ".[dev]"
 tui-delta --profile claude_code -- claude code
 
 # Output streams to stdout in real-time
-# You can pipe to logging tools, tee to file, etc.
+# You can pipe to logging tools, redirect to file, etc.
 ```
 
 ### View Captured Logs
@@ -84,7 +106,7 @@ Logs preserve the original terminal appearance and are viewable with standard to
 less -R session.log
 
 # Follow in real-time
-tui-delta --profile claude_code -- claude code | tee session.log
+tui-delta --profile claude_code -- claude code > session.log
 
 # Monitor with tail
 tui-delta --profile claude_code -- claude code > session.log &
@@ -100,13 +122,17 @@ tail -f session.log
 
 ## How It Works
 
-`tui-delta` wraps TUI applications and processes their output through a pipeline:
+Unlike simpler approaches that strip control sequences (losing content), `tui-delta` intelligently processes terminal output to preserve all meaningful deltas:
 
 1. **Capture** - Uses `script` to capture all terminal output including control sequences
-2. **Clear Detection** - Identifies lines that were cleared/overwritten (common in TUI apps)
-3. **Consolidation** - Outputs only meaningful changes, removing redundant redraws
+2. **Clear Detection** - Identifies lines that were cleared/overwritten
+3. **Consolidation** - Outputs all meaningful changes, removing only redundant redraws
 4. **Deduplication** - Removes duplicate sequences using configurable patterns
 5. **Streaming** - All output streams in real-time to stdout for immediate use
+
+**Result:** Complete, accurate logs of what happened in the session - not just the final terminal state.
+
+`tui-delta` leverages [`patterndb-yaml`](https://github.com/JeffreyUrban/patterndb-yaml) for multi-line pattern recognition via `syslog-ng`, and [`uniqseq`](https://github.com/JeffreyUrban/uniqseq) for deduplication of repeated content blocks.
 
 ## Documentation
 
@@ -115,7 +141,7 @@ tail -f session.log
 Key sections:
 - **Getting Started** - Installation and quick start guide
 - **Use Cases** - Real-world examples across different domains
-- **Guides** - TEMPLATE_PLACEHOLDER selection, performance tips, common patterns
+- **Guides** - Profile selection and definition, common patterns
 - **Reference** - Complete CLI and Python API documentation
 
 ## Development
@@ -138,35 +164,6 @@ pytest
 pytest --cov=tui-delta --cov-report=html
 ```
 
-### GitHub Repository Configuration
-
-After creating your GitHub repository, run the configuration script to set up recommended settings:
-
-```bash
-./scripts/configure-github.sh
-```
-
-This script configures:
-- **Merge strategy:** Squash and merge only (with other methods disabled)
-- **Branch protection on main:**
-  - Prevents force pushes and branch deletion
-  - Enforces rules for administrators
-  - Allows configuration of required status checks
-- **Auto-delete branches** after merge
-- **Auto-merge** capability
-
-**Requirements:**
-- [GitHub CLI](https://cli.github.com/) installed and authenticated (`gh auth login`)
-- Admin permissions on the repository
-
-The script will automatically detect your repository from the git remote, or you can specify it manually:
-
-```bash
-./scripts/configure-github.sh owner/repository-name
-```
-
-**Note:** After setting up GitHub Actions workflows, add required status checks by following the instructions shown at the end of the script output.
-
 ## Features
 
 - **Profile-based Processing** - Pre-configured profiles for Claude Code, generic TUI apps, and minimal processing
@@ -174,7 +171,7 @@ The script will automatically detect your repository from the git remote, or you
 - **Real-time Streaming** - Output streams as the session runs, no buffering delays
 - **Preserves Appearance** - Logs show content exactly as displayed in terminal
 - **Efficient Deduplication** - Smart removal of redundant content while keeping ephemeral changes
-- **Unix Pipeline Friendly** - Works with standard Unix tools (tee, grep, tail, etc.)
+- **Unix Pipeline Friendly** - Works with standard Unix tools
 
 ## License
 

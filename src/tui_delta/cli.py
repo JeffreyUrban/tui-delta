@@ -1,33 +1,50 @@
 """Command-line interface for tui-delta."""
 
-import json
-import sys
-from collections.abc import Iterator
 from pathlib import Path
-from typing import Optional, TextIO
+from typing import Optional
 
 import typer
 from rich.console import Console
-from rich.progress import (
-    BarColumn,
-    Progress,
-    SpinnerColumn,
-    TaskProgressColumn,
-    TextColumn,
-)
-from rich.table import Table
 
 from . import __version__
 from .run import run_tui_with_pipeline
 
 app = typer.Typer(
     name="tui-delta",
-    help="Run TUI applications with real-time delta processing for monitoring and logging AI assistant sessions",
+    help=(
+        "Run TUI applications with real-time delta processing "
+        "for monitoring and logging AI assistant sessions"
+    ),
     context_settings={"help_option_names": ["-h", "--help"]},
     add_completion=False,
 )
 
 console = Console(stderr=True)  # All output to stderr to preserve stdout for data
+
+
+def version_callback(value: bool) -> None:
+    """Print version and exit if --version flag is provided."""
+    if value:
+        typer.echo(f"tui-delta version {__version__}")
+        raise typer.Exit()
+
+
+@app.callback()
+def main(
+    version: Optional[bool] = typer.Option(
+        None,
+        "--version",
+        "-v",
+        callback=version_callback,
+        is_eager=True,
+        help="Show version and exit",
+    ),
+) -> None:
+    """
+    Run TUI applications with real-time delta processing for monitoring
+    and logging AI assistant sessions.
+    """
+    pass
 
 
 @app.command()

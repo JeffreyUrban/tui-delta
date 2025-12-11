@@ -34,8 +34,7 @@ class TestHandcraftedCases:
 
         # Run through clear_lines
         result = subprocess.run(
-            [sys.executable, "-m", "tui_delta.clear_lines",
-             "--profile", fixture["profile"]],
+            [sys.executable, "-m", "tui_delta.clear_lines", "--profile", fixture["profile"]],
             input=input_data.encode(),
             capture_output=True,
         )
@@ -57,8 +56,7 @@ class TestEdgeCases:
         input_data = "\n".join(fixture["input_lines"]) + "\n"
 
         result = subprocess.run(
-            [sys.executable, "-m", "tui_delta.clear_lines",
-             "--profile", fixture["profile"]],
+            [sys.executable, "-m", "tui_delta.clear_lines", "--profile", fixture["profile"]],
             input=input_data.encode(),
             capture_output=True,
         )
@@ -79,8 +77,7 @@ class TestRandomCases:
         input_data = "\n".join(fixture["input_lines"]) + "\n"
 
         result = subprocess.run(
-            [sys.executable, "-m", "tui_delta.clear_lines",
-             "--profile", fixture["profile"]],
+            [sys.executable, "-m", "tui_delta.clear_lines", "--profile", fixture["profile"]],
             input=input_data.encode(),
             capture_output=True,
         )
@@ -101,8 +98,7 @@ class TestInvariantsWithFixtures:
         input_data = "\n".join(fixture["input_lines"]) + "\n"
 
         result = subprocess.run(
-            [sys.executable, "-m", "tui_delta.clear_lines",
-             "--profile", fixture["profile"]],
+            [sys.executable, "-m", "tui_delta.clear_lines", "--profile", fixture["profile"]],
             input=input_data.encode(),
             capture_output=True,
         )
@@ -118,8 +114,7 @@ class TestInvariantsWithFixtures:
         input_data = "\n".join(fixture["input_lines"]) + "\n"
 
         result = subprocess.run(
-            [sys.executable, "-m", "tui_delta.clear_lines",
-             "--profile", fixture["profile"]],
+            [sys.executable, "-m", "tui_delta.clear_lines", "--profile", fixture["profile"]],
             input=input_data.encode(),
             capture_output=True,
         )
@@ -169,5 +164,6 @@ class TestFixtureQuality:
         valid_profiles = {"minimal", "generic", "claude_code"}
 
         for fixture in ALL_CASES:
-            assert fixture["profile"] in valid_profiles, \
+            assert fixture["profile"] in valid_profiles, (
                 f"Fixture {fixture['name']} has invalid profile: {fixture['profile']}"
+            )

@@ -67,11 +67,7 @@ def test_list_profiles_command():
 def test_run_command_basic():
     """Test 'run' command with simple echo."""
     # Run a simple command that outputs a few lines
-    result = runner.invoke(
-        app,
-        ["run", "--profile", "minimal", "--", "echo", "test"],
-        env=TEST_ENV
-    )
+    result = runner.invoke(app, ["run", "--profile", "minimal", "--", "echo", "test"], env=TEST_ENV)
     # Exit code might be non-zero due to script command behavior
     # Just verify it ran without Python errors
     assert "test" in result.stdout or result.exit_code in [0, 1]
@@ -81,9 +77,7 @@ def test_run_command_basic():
 def test_run_command_invalid_profile():
     """Test 'run' command with invalid profile."""
     result = runner.invoke(
-        app,
-        ["run", "--profile", "nonexistent", "--", "echo", "test"],
-        env=TEST_ENV
+        app, ["run", "--profile", "nonexistent", "--", "echo", "test"], env=TEST_ENV
     )
     # Should fail with error about profile
     assert result.exit_code != 0
@@ -122,9 +116,7 @@ profiles:
 """)
 
     result = runner.invoke(
-        app,
-        ["run", "--rules-file", str(rules_file), "--", "echo", "test"],
-        env=TEST_ENV
+        app, ["run", "--rules-file", str(rules_file), "--", "echo", "test"], env=TEST_ENV
     )
     # Should run without errors (exit code might vary due to script)
     assert result.exit_code in [0, 1]
@@ -136,9 +128,7 @@ def test_version_option():
     # Version callback is defined but needs to be on a command
     # Test that version info is accessible
     result = subprocess.run(
-        [sys.executable, "-m", "tui_delta.cli", "run", "--help"],
-        capture_output=True,
-        text=True
+        [sys.executable, "-m", "tui_delta.cli", "run", "--help"], capture_output=True, text=True
     )
     assert result.returncode == 0
     # Just verify CLI is working
@@ -151,14 +141,12 @@ def test_run_profiles_integration():
 
     for profile in profiles:
         result = runner.invoke(
-            app,
-            ["run", "--profile", profile, "--", "echo", "test"],
-            env=TEST_ENV
+            app, ["run", "--profile", profile, "--", "echo", "test"], env=TEST_ENV
         )
         # Should not crash (exit code may vary due to script command)
         # Just verify no Python exceptions
         assert "Traceback" not in result.stdout
-        assert "Traceback" not in result.stderr if hasattr(result, 'stderr') else True
+        assert "Traceback" not in result.stderr if hasattr(result, "stderr") else True
 
 
 @pytest.mark.unit
@@ -166,9 +154,7 @@ def test_clear_lines_module_directly():
     """Test clear_lines module can be invoked directly."""
     # This tests the clear_lines CLI entry point
     result = subprocess.run(
-        [sys.executable, "-m", "tui_delta.clear_lines", "--help"],
-        capture_output=True,
-        text=True
+        [sys.executable, "-m", "tui_delta.clear_lines", "--help"], capture_output=True, text=True
     )
     assert result.returncode == 0
     assert "--prefixes" in result.stdout or "--profile" in result.stdout
@@ -180,7 +166,7 @@ def test_consolidate_module_directly():
     result = subprocess.run(
         [sys.executable, "-m", "tui_delta.consolidate_clears", "--help"],
         capture_output=True,
-        text=True
+        text=True,
     )
     assert result.returncode == 0
 
@@ -193,7 +179,7 @@ def test_pipeline_stdin_to_stdout():
     result = subprocess.run(
         [sys.executable, "-m", "tui_delta.clear_lines", "--profile", "minimal"],
         input=test_input.encode(),
-        capture_output=True
+        capture_output=True,
     )
 
     assert result.returncode == 0

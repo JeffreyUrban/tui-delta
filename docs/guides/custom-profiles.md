@@ -102,7 +102,7 @@ patterns:
 
 This normalizes all spinner variations to `[spinner:task_name]` for comparison.
 
-See `src/tui_delta/tui_profiles.yaml` for complete pattern examples.
+The `normalization_patterns` section uses [patterndb-yaml](https://patterndb-yaml.readthedocs.io/)'s YAML format for pattern definitions. See the [patterndb-yaml Rules Documentation](https://patterndb-yaml.readthedocs.io/en/latest/features/rules/rules/) for pattern syntax details. Reference the [built-in profiles](https://github.com/JeffreyUrban/tui-delta/blob/main/src/tui_delta/tui_profiles.yaml) for complete tui-delta profile examples.
 
 ## Testing Your Profile
 
@@ -121,4 +121,5 @@ For AI assistants like Claude Code, see [AI Assistant Logging](../use-cases/ai-a
 ## Next Steps
 
 - **[CLI Reference](../reference/cli.md)** - Command options
-- **[tui_profiles.yaml](https://github.com/JeffreyUrban/tui-delta/blob/main/src/tui_delta/tui_profiles.yaml)** - Built-in profile examples
+- **[Built-in Profiles](https://github.com/JeffreyUrban/tui-delta/blob/main/src/tui_delta/tui_profiles.yaml)** - Complete tui-delta profile examples
+- **[patterndb-yaml Rules](https://patterndb-yaml.readthedocs.io/en/latest/features/rules/rules/)** - Pattern syntax for normalization_patterns section

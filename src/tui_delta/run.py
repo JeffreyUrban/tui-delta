@@ -107,11 +107,11 @@ def build_pipeline_commands(
     # Step 5 (optional): additional_pipeline from profile
     try:
         profile_config = ClearRules.get_profile_config(profile, rules_file)
-        additional_pipeline = profile_config.get('additional_pipeline')
+        additional_pipeline = profile_config.get("additional_pipeline")
         if additional_pipeline:
             # Parse shell command into list for subprocess
             # Shell will handle the command string, so pass it as-is
-            pipeline.append(['sh', '-c', additional_pipeline])
+            pipeline.append(["sh", "-c", additional_pipeline])
     except (FileNotFoundError, ValueError):
         # If profile not found or file missing, continue without additional pipeline
         pass
@@ -190,7 +190,7 @@ def run_tui_with_pipeline(
 
             # Collect stderr if process failed
             if proc.returncode != 0:
-                stderr_output = proc.stderr.read().decode('utf-8', errors='replace')
+                stderr_output = proc.stderr.read().decode("utf-8", errors="replace")
                 # Identify which stage failed
                 if proc == script_proc:
                     stage_name = "script"

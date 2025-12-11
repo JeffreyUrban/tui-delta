@@ -22,9 +22,12 @@ print(f"Input size: {len(fixture_data):,} bytes", file=sys.stderr)
 # Stage 1: clear_lines
 clear_lines_proc = subprocess.Popen(
     [
-        sys.executable, "-m", "tui_delta.clear_lines",
+        sys.executable,
+        "-m",
+        "tui_delta.clear_lines",
         "--prefixes",
-        "--profile", "claude_code",
+        "--profile",
+        "claude_code",
     ],
     stdin=subprocess.PIPE,
     stdout=subprocess.PIPE,
@@ -43,8 +46,11 @@ clear_lines_proc.stdout.close()
 # Stage 3: first uniqseq
 uniqseq1_proc = subprocess.Popen(
     [
-        sys.executable, "-m", "uniqseq",
-        "--track", r"^\+: ",
+        sys.executable,
+        "-m",
+        "uniqseq",
+        "--track",
+        r"^\+: ",
         "--quiet",
     ],
     stdin=consolidate_proc.stdout,
@@ -65,12 +71,18 @@ uniqseq1_proc.stdout.close()
 # Stage 5: final uniqseq (from claude_code profile)
 uniqseq2_proc = subprocess.Popen(
     [
-        sys.executable, "-m", "uniqseq",
-        "--track", r"^\S",
+        sys.executable,
+        "-m",
+        "uniqseq",
+        "--track",
+        r"^\S",
         "--quiet",
-        "--max-history", "5",
-        "--window-size", "1",
-        "--max-unique-sequences", "0",
+        "--max-history",
+        "5",
+        "--window-size",
+        "1",
+        "--max-unique-sequences",
+        "0",
     ],
     stdin=cut_proc.stdout,
     stdout=subprocess.PIPE,
@@ -85,8 +97,13 @@ try:
 except BrokenPipeError:
     print("Broken pipe when writing to clear_lines", file=sys.stderr)
     # Collect errors from all processes
-    for name, proc in [("clear_lines", clear_lines_proc), ("consolidate", consolidate_proc),
-                       ("uniqseq1", uniqseq1_proc), ("cut", cut_proc), ("uniqseq2", uniqseq2_proc)]:
+    for name, proc in [
+        ("clear_lines", clear_lines_proc),
+        ("consolidate", consolidate_proc),
+        ("uniqseq1", uniqseq1_proc),
+        ("cut", cut_proc),
+        ("uniqseq2", uniqseq2_proc),
+    ]:
         proc.wait()
         if proc.returncode != 0:
             _, stderr = proc.communicate()
@@ -107,4 +124,4 @@ GOLDEN_OUTPUT.write_bytes(output)
 print(f"Golden output generated: {GOLDEN_OUTPUT}")
 print(f"Output size: {len(output):,} bytes")
 print(f"Output lines: {len(output.decode('utf-8', errors='replace').splitlines()):,}")
-print(f"Compression: {100 * (1 - len(output)/len(fixture_data)):.1f}%")
+print(f"Compression: {100 * (1 - len(output) / len(fixture_data)):.1f}%")

@@ -23,6 +23,6 @@ jobs:
         uses: peter-evans/repository-dispatch@v3
         with:
           token: ${{ secrets.HOMEBREW_UPDATE_TOKEN }}
-          repository: {{ cookiecutter.github_username }}/homebrew-{{ cookiecutter.project_slug }}
+          repository: JeffreyUrban/homebrew-tui-delta
           event-type: update-formula
           client-payload: '{"version": "${{ steps.version.outputs.version }}"}'
