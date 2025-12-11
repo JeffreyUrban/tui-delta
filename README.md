@@ -1,5 +1,16 @@
 # TUI Delta
 
+## ⚠️ Early Development - Not Ready for Use
+
+**This project is under active development and is not ready for production use.**
+
+- APIs may change without notice
+- Documentation is incomplete
+- No releases published yet
+- Not accepting contributions at this time
+
+> - **Star/watch the repo to be notified when the first release is available.**
+
 **Run a TUI application (AI assistant sessions, et al) with real-time delta processing for monitoring and logging. Supports Claude Code.**
 
 A general-purpose TUI capture and logging utility created for efficiently logging AI assistant interactive sessions, where that remains the primary use case.
