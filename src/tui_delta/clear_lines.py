@@ -20,8 +20,9 @@ FIFO terminology:
 import re
 import sys
 from collections import deque
+from collections.abc import Iterator
 from pathlib import Path
-from typing import Iterator, Optional, cast
+from typing import Optional, cast
 
 import typer
 
