@@ -157,7 +157,8 @@ $ tui-delta run --profile claude_code -- claude code \
 **Redirect output to avoid garbling:**
 ```bash
 # Save to file during session
-tui-delta run --profile claude_code -- claude code | grep -i "error" > errors.log
+tui-delta run --profile claude_code -- claude code | \
+  grep -i "error" > errors.log
 
 # Or process log after session completes
 tui-delta run --profile claude_code -- claude code > session.log

@@ -1,21 +1,10 @@
 """Command-line interface for tui-delta."""
 
-import json
-import sys
-from collections.abc import Iterator
 from pathlib import Path
-from typing import Optional, TextIO
+from typing import Optional
 
 import typer
 from rich.console import Console
-from rich.progress import (
-    BarColumn,
-    Progress,
-    SpinnerColumn,
-    TaskProgressColumn,
-    TextColumn,
-)
-from rich.table import Table
 
 from . import __version__
 from .run import run_tui_with_pipeline

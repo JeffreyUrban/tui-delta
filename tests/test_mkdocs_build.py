@@ -14,7 +14,7 @@ def test_mkdocs_build():
     # Add venv bin to PATH for mkdocs command
     env = os.environ.copy()
     venv_bin = Path(sys.executable).parent
-    env['PATH'] = f"{venv_bin}:{env.get('PATH', '')}"
+    env["PATH"] = f"{venv_bin}:{env.get('PATH', '')}"
 
     result = subprocess.run(
         ["mkdocs", "build", "--strict"],

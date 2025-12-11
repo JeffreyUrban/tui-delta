@@ -22,22 +22,22 @@ Configuration:
 - All patterns are available; profiles determine which rules are used upstream
 """
 
-import sys
 import difflib
-from enum import Enum
-from typing import Optional
-from pathlib import Path
 import re
+import sys
 import tempfile
-import yaml
+from enum import Enum
+from pathlib import Path
+from typing import Optional
 
 import typer
+import yaml
+from patterndb_yaml import PatterndbYaml
 from rich.console import Console
 from rich.text import Text
-from patterndb_yaml import PatterndbYaml
 
 # Compile ANSI escape sequence regex once at module import time
-ANSI_RE = re.compile(r'\x1b\[[0-9;]*[a-zA-Z]')
+ANSI_RE = re.compile(r"\x1b\[[0-9;]*[a-zA-Z]")
 
 
 def _create_rules_file_from_profiles() -> Path:
@@ -51,24 +51,24 @@ def _create_rules_file_from_profiles() -> Path:
         Path to temporary YAML file in rules format
     """
     module_dir = Path(__file__).parent
-    profiles_path = module_dir / 'tui_profiles.yaml'
+    profiles_path = module_dir / "tui_profiles.yaml"
 
-    with open(profiles_path, 'r') as f:
+    with open(profiles_path) as f:
         config = yaml.safe_load(f)
 
     # Get all pattern definitions
-    all_patterns = config.get('patterns', {})
+    all_patterns = config.get("patterns", {})
 
     # Convert all patterns from dict to rules list format
     rules = []
     for pattern_name, pattern_def in all_patterns.items():
         # Add 'name' field for rules list format
-        rule = {'name': pattern_name, **pattern_def}
+        rule = {"name": pattern_name, **pattern_def}
         rules.append(rule)
 
     # Create temp file with rules in expected format
-    temp_file = tempfile.NamedTemporaryFile(mode='w', suffix='.yaml', delete=False)
-    yaml.safe_dump({'rules': rules}, temp_file)
+    temp_file = tempfile.NamedTemporaryFile(mode="w", suffix=".yaml", delete=False)
+    yaml.safe_dump({"rules": rules}, temp_file)
     temp_file.close()
 
     return Path(temp_file.name)
@@ -76,6 +76,7 @@ def _create_rules_file_from_profiles() -> Path:
 
 class LineType(str, Enum):
     """Type of line based on prefix"""
+
     KEPT = "kept"
     CLEARED_BACKSLASH = "cleared_backslash"
     CLEARED_SLASH = "cleared_slash"
@@ -115,7 +116,7 @@ def is_window_title_line(content: str) -> bool:
     Returns:
         True if this is a window title line
     """
-    return content.startswith('[window-title:') or content.startswith('[window-title-icon:')
+    return content.startswith("[window-title:") or content.startswith("[window-title-icon:")
 
 
 def _char_diff(old_line: str, new_line: str) -> Text:
@@ -138,12 +139,12 @@ def _char_diff(old_line: str, new_line: str) -> Text:
     while i < len(opcodes):
         tag, i1, i2, j1, j2 = opcodes[i]
 
-        if tag == 'equal':
+        if tag == "equal":
             diff_text.append(new_line[j1:j2])
             i += 1
-        elif tag == 'delete':
+        elif tag == "delete":
             # Check if next operation is insert - if so, treat as replacement (yellow)
-            if i + 1 < len(opcodes) and opcodes[i + 1][0] == 'insert':
+            if i + 1 < len(opcodes) and opcodes[i + 1][0] == "insert":
                 # Skip the delete, process the insert as yellow
                 _, _, _, j1_next, j2_next = opcodes[i + 1]
                 diff_text.append(new_line[j1_next:j2_next], style="yellow")
@@ -152,16 +153,16 @@ def _char_diff(old_line: str, new_line: str) -> Text:
                 # Pure delete - show a single red marker character
                 diff_text.append("␡", style="red")
                 i += 1
-        elif tag == 'insert':
+        elif tag == "insert":
             # Check if previous operation was delete - if so, already handled
-            if i > 0 and opcodes[i - 1][0] == 'delete':
+            if i > 0 and opcodes[i - 1][0] == "delete":
                 # Already handled as part of delete+insert pair
                 i += 1
             else:
                 # Pure insert - show in green
                 diff_text.append(new_line[j1:j2], style="green")
                 i += 1
-        elif tag == 'replace':
+        elif tag == "replace":
             # Replacement - show new in yellow
             diff_text.append(new_line[j1:j2], style="yellow")
             i += 1
@@ -180,7 +181,7 @@ def _match_pattern_components(line: str, pattern_components: list) -> tuple[bool
         Tuple of (matched: bool, fields: dict)
     """
     # Strip ANSI codes from line (use precompiled ANSI_RE)
-    line_clean = ANSI_RE.sub('', line)
+    line_clean = ANSI_RE.sub("", line)
 
     pos = 0  # Current position in line_clean
     fields = {}  # Extracted field values
@@ -189,10 +190,10 @@ def _match_pattern_components(line: str, pattern_components: list) -> tuple[bool
         if pos > len(line_clean):
             return False, {}  # Ran past end of line
 
-        if 'alternatives' in component:
+        if "alternatives" in component:
             # Try to match any alternative at current position
             matched = False
-            for alt in component['alternatives']:
+            for alt in component["alternatives"]:
                 # Each alternative is a list of elements
                 alt_text = _render_component_sequence(alt)
                 if line_clean[pos:].startswith(alt_text):
@@ -203,30 +204,30 @@ def _match_pattern_components(line: str, pattern_components: list) -> tuple[bool
             if not matched:
                 return False, {}  # No alternative matched
 
-        elif 'field' in component:
+        elif "field" in component:
             # Extract field value from current position
-            field_name = component['field']
-            parser = component.get('parser')
+            field_name = component["field"]
+            parser = component.get("parser")
 
-            if parser == 'NUMBER':
+            if parser == "NUMBER":
                 # Match digits
-                match = re.match(r'\d+', line_clean[pos:])
+                match = re.match(r"\d+", line_clean[pos:])
                 if not match:
                     return False, {}
                 pos += len(match.group())
             else:
                 pos = len(line_clean)
 
-        elif 'text' in component:
+        elif "text" in component:
             # Fixed text must match exactly
-            text = component['text']
+            text = component["text"]
             if not line_clean[pos:].startswith(text):
                 return False, {}
             pos += len(text)
 
-        elif 'serialized' in component:
+        elif "serialized" in component:
             # Serialized characters must match exactly
-            serialized_str = component['serialized']
+            serialized_str = component["serialized"]
             if not line_clean[pos:].startswith(serialized_str):
                 return False, {}
             pos += len(serialized_str)
@@ -246,12 +247,12 @@ def _render_component_sequence(components: list) -> str:
     """
     result = []
     for comp in components:
-        if 'text' in comp:
-            result.append(comp['text'])
-        elif 'serialized' in comp:
-            result.append(comp['serialized'])
+        if "text" in comp:
+            result.append(comp["text"])
+        elif "serialized" in comp:
+            result.append(comp["serialized"])
         # Fields and alternatives not supported in literal rendering
-    return ''.join(result)
+    return "".join(result)
 
 
 def _print_prefixed_line(
@@ -285,8 +286,9 @@ def _print_prefixed_line(
         print(f"{prefix}{line}")
 
 
-def _extract_sequence_block(lines: list[str], normalized_lines: list[str], sequence_configs: dict,
-                            sequence_markers: set) -> tuple[list[str], list[str], list[str], list[str]]:
+def _extract_sequence_block(
+    lines: list[str], normalized_lines: list[str], sequence_configs: dict, sequence_markers: set
+) -> tuple[list[str], list[str], list[str], list[str]]:
     """
     Extract multi-line sequences from a block, separating them from non-sequence lines.
 
@@ -323,9 +325,9 @@ def _extract_sequence_block(lines: list[str], normalized_lines: list[str], seque
             if norm_line.startswith(marker):
                 # Find which sequence config this marker belongs to
                 for rule_name, sequence_config in sequence_configs.items():
-                    output = sequence_config.get('output', '')
-                    if output.startswith('[') and ':' in output:
-                        config_marker = output[:output.index(':') + 1]
+                    output = sequence_config.get("output", "")
+                    if output.startswith("[") and ":" in output:
+                        config_marker = output[: output.index(":") + 1]
                         if config_marker == marker:
                             matched_sequence = sequence_config
                             break
@@ -338,14 +340,14 @@ def _extract_sequence_block(lines: list[str], normalized_lines: list[str], seque
             i += 1
 
             # Get follower patterns for this sequence
-            sequence_spec = matched_sequence.get('sequence', {})
-            follower_specs = sequence_spec.get('followers', [])
+            sequence_spec = matched_sequence.get("sequence", {})
+            follower_specs = sequence_spec.get("followers", [])
 
             # Greedily consume follower lines using generic pattern matching
             while i < len(lines):
                 # Check if line matches any follower pattern
                 matches_follower = any(
-                    _match_pattern_components(lines[i], follower['pattern'])[0]
+                    _match_pattern_components(lines[i], follower["pattern"])[0]
                     for follower in follower_specs
                 )
                 if matches_follower:
@@ -412,16 +414,26 @@ def output_diff(
 
     # Only extract sequences if we found sequence markers
     if has_sequences:
-        prev_non_seq, prev_seq, prev_non_seq_norm, prev_seq_norm = _extract_sequence_block(prev_lines, prev_normalized,
-                                                                                           sequence_configs,
-                                                                                           sequence_markers)
-        curr_non_seq, curr_seq, curr_non_seq_norm, curr_seq_norm = _extract_sequence_block(curr_lines, curr_normalized,
-                                                                                           sequence_configs,
-                                                                                           sequence_markers)
+        prev_non_seq, prev_seq, prev_non_seq_norm, prev_seq_norm = _extract_sequence_block(
+            prev_lines, prev_normalized, sequence_configs, sequence_markers
+        )
+        curr_non_seq, curr_seq, curr_non_seq_norm, curr_seq_norm = _extract_sequence_block(
+            curr_lines, curr_normalized, sequence_configs, sequence_markers
+        )
     else:
         # No sequences - use all lines as non-sequence
-        prev_non_seq, prev_seq, prev_non_seq_norm, prev_seq_norm = prev_lines, [], prev_normalized, []
-        curr_non_seq, curr_seq, curr_non_seq_norm, curr_seq_norm = curr_lines, [], curr_normalized, []
+        prev_non_seq, prev_seq, prev_non_seq_norm, prev_seq_norm = (
+            prev_lines,
+            [],
+            prev_normalized,
+            [],
+        )
+        curr_non_seq, curr_seq, curr_non_seq_norm, curr_seq_norm = (
+            curr_lines,
+            [],
+            curr_normalized,
+            [],
+        )
 
     # If current block has no sequence but we have buffered sequence, output it first
     if not curr_seq and buffered_choices:
@@ -439,17 +451,22 @@ def output_diff(
     matcher = difflib.SequenceMatcher(None, prev_normalized, curr_normalized)
 
     for tag, i1, i2, j1, j2 in matcher.get_opcodes():
-        if tag == 'equal':
+        if tag == "equal":
             # Lines are the same, skip them
             continue
-        elif tag == 'delete':
+        elif tag == "delete":
             # Lines removed from previous block
             pass
-        elif tag == 'insert':
+        elif tag == "insert":
             # Lines added in current block
             for line in curr_lines[j1:j2]:
-                _print_prefixed_line(prefix, line, console if use_diff else None, style=("green" if use_diff else None))
-        elif tag == 'replace':
+                _print_prefixed_line(
+                    prefix,
+                    line,
+                    console if use_diff else None,
+                    style=("green" if use_diff else None),
+                )
+        elif tag == "replace":
             # Lines changed
             # Apply character-level diff if diff enabled
             if use_diff and console and len(prev_lines[i1:i2]) == 1 and len(curr_lines[j1:j2]) == 1:
@@ -552,14 +569,11 @@ app = typer.Typer()
 
 @app.command()
 def main(
-    input_file: Optional[typer.FileText] = typer.Argument(
-        None,
-        help="Input file (default: stdin)"
-    ),
+    input_file: Optional[typer.FileText] = typer.Argument(None, help="Input file (default: stdin)"),
     diff: bool = typer.Option(
         False,
         "--diff/--no-diff",
-        help="Use Git-style diffs with character-level highlighting (green=added, red=deleted, yellow=modified)"
+        help="Use Git-style diffs with character-level highlighting (green=added, red=deleted, yellow=modified)",
     ),
 ):
     """
@@ -583,7 +597,7 @@ def main(
     # Initialize normalization engine and load sequence configurations
     # Create temporary rules file from tui_profiles.yaml
     module_dir = Path(__file__).parent
-    profiles_path = module_dir / 'tui_profiles.yaml'
+    profiles_path = module_dir / "tui_profiles.yaml"
 
     norm_engine = None
     sequence_configs = {}
@@ -607,7 +621,7 @@ def main(
 
     try:
         for line in input_stream:
-            line = line.rstrip('\n')
+            line = line.rstrip("\n")
             line_type, content = parse_line(line)
 
             if line_type == LineType.COMMAND:
@@ -638,7 +652,6 @@ def main(
 
                 # Output kept line
                 print(line)
-
 
             else:  # Cleared line (backslash or slash)
                 # Determine prefix for this cleared block
@@ -695,6 +708,7 @@ def main(
         # Clean up temporary rules file if created
         if rules_path and rules_path.exists():
             import os
+
             os.unlink(rules_path)
 
 
