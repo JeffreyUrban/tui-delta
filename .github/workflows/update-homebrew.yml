@@ -22,7 +22,7 @@ jobs:
       - name: Trigger Homebrew tap update
         uses: peter-evans/repository-dispatch@v3
         with:
-          token: {% raw %}${{ secrets.HOMEBREW_UPDATE_TOKEN }}{% endraw %}
+          token: ${{ secrets.HOMEBREW_UPDATE_TOKEN }}
           repository: JeffreyUrban/homebrew-tui-delta
           event-type: update-formula
-          client-payload: '{"version": "{% raw %}${{ steps.version.outputs.version }}{% endraw %}"}'
+          client-payload: '{"version": "${{ steps.version.outputs.version }}"}'
