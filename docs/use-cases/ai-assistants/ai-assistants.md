@@ -5,10 +5,9 @@ Primary use case: capturing and logging AI assistant interactive sessions.
 ## AI Assistant Compatibility
 
 - **Claude Code** - Fully supported with optimized profile
-- **Cline, Cursor, Aider** - Expected to work; likely requires profile customization for best results
-- **Other AI assistant TUIs** - Should work with `generic` profile or custom profile
+- **Cline, Cursor, Aider, etc.** - Expected to work; likely requires profile customization for best results
 
-**Note:** Only Claude Code is officially supported. Other assistants are expected to work but may need custom profiles for optimal results. Community contributions welcome.
+**Note:** Only Claude Code is supported. Other assistants are expected to work, with custom profiles necessary for optimal results. Community contributions welcome.
 
 ## Claude Code Sessions
 
@@ -19,21 +18,22 @@ Primary use case: capturing and logging AI assistant interactive sessions.
 $ tui-delta run --profile claude_code -- claude code > session.log
 ```
 
-Captures the full session with:
+Captures the full session with everything visible in the view and scrollback:
 
 - User prompts and assistant responses
 - Tool use (file reads, writes, commands)
-- Ephemeral content (spinners, progress indicators)
+- Ephemeral content (status reports, active files, etc.)
 - Dialog interactions
+- Window titles
 
 ### Real-time Monitoring + Logging
 
 <!-- interactive-only -->
 ```console
-$ tui-delta run --profile claude_code -- claude code | tee session.log
+$ tui-delta run --profile claude_code -- claude code > session.log
 ```
 
-Display in terminal AND save to file simultaneously.
+Interact in terminal AND save to file simultaneously.
 
 ### Review Logged Session
 
@@ -41,7 +41,7 @@ Display in terminal AND save to file simultaneously.
 $ less -R session.log
 ```
 
-The `-R` flag preserves ANSI colors and formatting.
+The `-R` flag may be necessary to preserve ANSI colors and formatting on some systems.
 
 ## Other AI Assistants
 
@@ -87,7 +87,7 @@ When unexpected behavior occurs:
 
 <!-- interactive-only -->
 ```console
-$ tui-delta run --profile claude_code -- claude code 2>&1 | tee full-session.log
+$ tui-delta run --profile claude_code -- claude code 2>&1 > full-session.log
 ```
 
 Captures both stdout and stderr for debugging.

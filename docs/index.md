@@ -10,13 +10,13 @@ Log AI assistant sessions (Claude Code, Cline, Cursor, Aider, etc.) with:
 
 - **Real-time streaming** - Monitor sessions as they run
 - **Clean output** - Removes screen control sequences and redundant redraws
-- **Preserves appearance** - Logs viewable with `less -R` show original formatting
+- **Preserves appearance** - Logs viewable with `less` or `less -R` (system-dependent) show original formatting
 - **Efficient capture** - Outputs all ephemeral content while deduplicating redundant output
 
 ## Quick Example
 
 ```console
-$ tui-delta --profile claude_code -- claude code | tee session.log
+$ tui-delta --profile claude_code -- claude code > session.log
 ```
 
 This wraps Claude Code, processes its output in real-time, and saves to `session.log` while displaying to terminal.
@@ -31,10 +31,10 @@ This wraps Claude Code, processes its output in real-time, and saves to `session
 
 ## Features
 
-- **Profile-based Processing** - Pre-configured for Claude Code, plus generic and minimal profiles
-- **Custom Profiles** - Define YAML profiles for your TUI applications
-- **Real-time Streaming** - No buffering delays, output streams as session runs
-- **Unix Pipeline Friendly** - Works with tee, grep, tail, and other standard tools
+- **Profile-based Processing** - Pre-configured for Claude Code, plus support for user-specified profiles
+- **Custom Profiles** - Define YAML profiles for other TUI applications
+- **Real-time Streaming** - No unnecessary delays, output streams as session runs
+- **Unix Pipeline Friendly** - Works with standard command-line tools and logging software
 
 ## Getting Started
 

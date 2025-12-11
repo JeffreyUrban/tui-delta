@@ -86,7 +86,9 @@ Optimized for Claude Code terminal UI sessions.
 - Normalizes dialog questions and choices
 - Handles activity spinners
 - Tracks thinking indicators
+- Maintains scrollback output
 - Deduplicates task progress updates
+  - (keeping the last instance shown... e.g. generally the total token count for an action)
 
 **Use when:** Logging Claude Code sessions
 
@@ -119,9 +121,8 @@ Minimal processing with only base clear detection.
 All commands output to stdout. Use shell redirection to save:
 
 ```console
-$ tui-delta run -- claude code > session.log
-$ tui-delta run -- claude code | tee session.log  # Display and save
-$ tui-delta run -- claude code 2>&1 | tee full-log.txt  # Include stderr
+$ tui-delta run -- claude code > session.log  # Display and save
+$ tui-delta run -- claude code 2>&1 > full-log.txt  # Include stderr
 ```
 
 ## Exit Codes
