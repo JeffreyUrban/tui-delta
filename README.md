@@ -94,7 +94,7 @@ Windows is not currently supported. Consider using WSL2 (Windows Subsystem for L
 tui-delta --profile claude_code -- claude code
 
 # Output streams to stdout in real-time
-# You can pipe to logging tools, tee to file, etc.
+# You can pipe to logging tools, redirect to file, etc.
 ```
 
 ### View Captured Logs
@@ -106,7 +106,7 @@ Logs preserve the original terminal appearance and are viewable with standard to
 less -R session.log
 
 # Follow in real-time
-tui-delta --profile claude_code -- claude code | tee session.log
+tui-delta --profile claude_code -- claude code > session.log
 
 # Monitor with tail
 tui-delta --profile claude_code -- claude code > session.log &
@@ -141,7 +141,7 @@ Unlike simpler approaches that strip control sequences (losing content), `tui-de
 Key sections:
 - **Getting Started** - Installation and quick start guide
 - **Use Cases** - Real-world examples across different domains
-- **Guides** - TEMPLATE_PLACEHOLDER selection, performance tips, common patterns
+- **Guides** - Profile selection and definition, common patterns
 - **Reference** - Complete CLI and Python API documentation
 
 ## Development
@@ -171,7 +171,7 @@ pytest --cov=tui-delta --cov-report=html
 - **Real-time Streaming** - Output streams as the session runs, no buffering delays
 - **Preserves Appearance** - Logs show content exactly as displayed in terminal
 - **Efficient Deduplication** - Smart removal of redundant content while keeping ephemeral changes
-- **Unix Pipeline Friendly** - Works with standard Unix tools (tee, grep, tail, etc.)
+- **Unix Pipeline Friendly** - Works with standard Unix tools
 
 ## License
 
