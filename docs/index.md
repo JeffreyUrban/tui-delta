@@ -1,6 +1,6 @@
 # tui-delta
 
-**Run a TUI application with real-time delta processing for monitoring and logging AI assistant sessions**
+**Run a TUI application (AI assistant sessions, et al) with real-time delta processing for monitoring and logging. Supports Claude Code.**
 
 `tui-delta` captures and logs AI assistant interactive sessions efficiently, streaming all meaningfully different content exactly as shown in the terminal.
 

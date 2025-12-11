@@ -11,7 +11,7 @@
 
 > - **Star/watch the repo to be notified when the first release is available.**
 
-**Run a TUI application with real-time delta processing for monitoring and logging AI assistant sessions**
+**Run a TUI application (AI assistant sessions, et al) with real-time delta processing for monitoring and logging. Supports Claude Code.**
 
 Capture and log AI assistant interactive sessions efficiently, streaming all meaningfully different content exactly as shown in the terminal. Fully supports Claude Code; other AI assistants (Cline, Cursor, Aider) expected to work with profile customization. The pipeline removes screen control sequences, outputs ephemeral content, and deduplicates redundant output - creating clean, viewable logs suitable for real-time monitoring and archival.
 
