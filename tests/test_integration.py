@@ -40,8 +40,6 @@ with open(fixture_path, "rb") as f:
         if not REAL_CLAUDE_SESSION.exists():
             pytest.skip(f"Real Claude Code session fixture not found: {REAL_CLAUDE_SESSION}")
 
-        output_file = tmp_path / "output.txt"
-
         # Capture stdout by redirecting in subprocess
         test_script = tmp_path / "test_runner.py"
         test_script.write_text(f'''

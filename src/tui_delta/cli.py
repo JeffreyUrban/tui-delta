@@ -11,7 +11,10 @@ from .run import run_tui_with_pipeline
 
 app = typer.Typer(
     name="tui-delta",
-    help="Run TUI applications with real-time delta processing for monitoring and logging AI assistant sessions",
+    help=(
+        "Run TUI applications with real-time delta processing "
+        "for monitoring and logging AI assistant sessions"
+    ),
     context_settings={"help_option_names": ["-h", "--help"]},
     add_completion=False,
 )
@@ -38,7 +41,8 @@ def main(
     ),
 ) -> None:
     """
-    Run TUI applications with real-time delta processing for monitoring and logging AI assistant sessions.
+    Run TUI applications with real-time delta processing for monitoring
+    and logging AI assistant sessions.
     """
     pass
 

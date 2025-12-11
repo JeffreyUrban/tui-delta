@@ -213,7 +213,10 @@ def main(
     show_prefixes: bool = typer.Option(
         False,
         "--prefixes/--no-prefixes",
-        help="Show state prefixes (+: for kept, \\: and /: alternating for cleared, >: for control, )",
+        help=(
+            "Show state prefixes "
+            "(+: for kept, \\: and /: alternating for cleared, >: for control, )"
+        ),
     ),
     show_line_numbers: bool = typer.Option(
         False, "--line-numbers/--no-line-numbers", "-n/-N", help="Show line numbers"

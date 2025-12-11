@@ -206,7 +206,6 @@ def _match_pattern_components(line: str, pattern_components: list) -> tuple[bool
 
         elif "field" in component:
             # Extract field value from current position
-            field_name = component["field"]
             parser = component.get("parser")
 
             if parser == "NUMBER":
@@ -300,8 +299,10 @@ def _extract_sequence_block(
     Args:
         lines: Block lines to process (raw content)
         normalized_lines: Pre-normalized versions of lines (from PatterndbYaml)
-        sequence_configs: Dict mapping rule names to rule configs (all rules with 'sequence' field)
-        sequence_markers: Set of output prefixes that identify sequence leaders (e.g., "[dialog-question:")
+        sequence_configs: Dict mapping rule names to rule configs
+            (all rules with 'sequence' field)
+        sequence_markers: Set of output prefixes that identify sequence leaders
+            (e.g., "[dialog-question:")
 
     Returns:
         Tuple of (non_sequence_lines, sequence_lines, non_sequence_normalized, sequence_normalized)
@@ -324,7 +325,7 @@ def _extract_sequence_block(
         for marker in sequence_markers:
             if norm_line.startswith(marker):
                 # Find which sequence config this marker belongs to
-                for rule_name, sequence_config in sequence_configs.items():
+                for _rule_name, sequence_config in sequence_configs.items():
                     output = sequence_config.get("output", "")
                     if output.startswith("[") and ":" in output:
                         config_marker = output[: output.index(":") + 1]
@@ -422,13 +423,13 @@ def output_diff(
         )
     else:
         # No sequences - use all lines as non-sequence
-        prev_non_seq, prev_seq, prev_non_seq_norm, prev_seq_norm = (
+        prev_non_seq, _prev_seq, prev_non_seq_norm, _prev_seq_norm = (
             prev_lines,
             [],
             prev_normalized,
             [],
         )
-        curr_non_seq, curr_seq, curr_non_seq_norm, curr_seq_norm = (
+        curr_non_seq, curr_seq, curr_non_seq_norm, _curr_seq_norm = (
             curr_lines,
             [],
             curr_normalized,
@@ -573,7 +574,10 @@ def main(
     diff: bool = typer.Option(
         False,
         "--diff/--no-diff",
-        help="Use Git-style diffs with character-level highlighting (green=added, red=deleted, yellow=modified)",
+        help=(
+            "Use Git-style diffs with character-level highlighting "
+            "(green=added, red=deleted, yellow=modified)"
+        ),
     ),
 ):
     """

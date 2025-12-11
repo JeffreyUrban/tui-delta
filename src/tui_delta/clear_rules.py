@@ -8,7 +8,7 @@ which lines should be cleared during a clear operation.
 
 import re
 from pathlib import Path
-from typing import Any, Dict, Optional
+from typing import Any, Optional
 
 import yaml
 
@@ -121,7 +121,7 @@ class ClearRules:
         return clear_count
 
     @staticmethod
-    def list_profiles(config_path: Optional[Path] = None) -> Dict[str, str]:
+    def list_profiles(config_path: Optional[Path] = None) -> dict[str, str]:
         """
         List available profiles and their descriptions.
 
@@ -147,7 +147,7 @@ class ClearRules:
     @staticmethod
     def get_profile_config(
         profile: Optional[str] = None, config_path: Optional[Path] = None
-    ) -> Dict[str, Any]:
+    ) -> dict[str, Any]:
         """
         Get the full configuration for a profile.
 
