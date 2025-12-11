@@ -11,9 +11,53 @@ No unreleased changes yet.
 
 ---
 
-## [0.0.0] - 1970-01-01
+## [0.1.0] - 2025-12-11
 
-### TEMPLATE_PLACEHOLDER
+### Added
+
+**Core Features:**
+- Real-time TUI output capture with intelligent delta processing
+- Support for wrapping AI assistant sessions (Claude Code, others with custom profiles)
+- Built-in profiles: `claude_code`, `generic`, `minimal`
+- Custom profile support via YAML configuration
+- Pattern-based line clearing detection and consolidation
+- Sequence-based clearing with follower pattern support
+- Output diff mode for debugging (`--diff`)
+
+**CLI Tools:**
+- `tui-delta run` - Main command for wrapping TUI applications
+- `tui-delta list-profiles` - List available profiles
+- `clear-lines` - Standalone utility for processing cleared line markers
+- `consolidate-clears` - Standalone utility for consolidating screen clears
+
+**Documentation:**
+- Comprehensive user documentation with MkDocs Material
+- Quick start guide and installation instructions
+- AI assistant logging use cases and examples
+- Custom profile creation guide
+- CLI reference documentation
+- All code examples tested with Sybil
+
+**Testing & Quality:**
+- 87% test coverage with 282 unit tests
+- Integration tests for state machine and CLI
+- Property-based tests for invariants
+- Oracle-based testing with reference implementations
+- CI/CD with GitHub Actions
+- Code quality: ruff (lint + format) + pyright (type checking)
+
+**Developer Experience:**
+- Python 3.9+ support (tested on 3.9, 3.14)
+- Clean, typed Python codebase
+- Rich terminal output for CLI
+- Typer framework for user-friendly commands
+
+### Technical Details
+
+- Uses syslog-ng for efficient TUI output processing
+- Pattern database (YAML) for clear marker detection
+- Unified sequence processing for multiple clear patterns
+- Smart delta extraction preserving all meaningful content
 
 Special thanks to the Python community and the developers of the excellent tools that made this project possible.
 
@@ -30,5 +74,5 @@ Releases are automated via GitHub Actions when a version tag is pushed:
    - Publishes to PyPI (when configured)
 4. Version number is automatically derived from Git tag
 
-[Unreleased]: https://github.com/JeffreyUrban/tui-delta/compare/v0.1.1...HEAD
-[0.0.0]: https://github.com/JeffreyUrban/tui-delta/releases/tag/v0.1.0
+[Unreleased]: https://github.com/JeffreyUrban/tui-delta/compare/v0.1.0...HEAD
+[0.1.0]: https://github.com/JeffreyUrban/tui-delta/releases/tag/v0.1.0
