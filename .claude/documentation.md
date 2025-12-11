@@ -98,8 +98,7 @@ dev-docs/
 │   └── PLANNING.md
 └── testing/              # Test strategy
     ├── TESTING_STRATEGY.md
-    ├── TEST_COVERAGE.md
-    └── ORACLE_TESTING.md
+    └── TEST_COVERAGE.md
 ```
 
 **Audience:** Developers, contributors, technical reviewers

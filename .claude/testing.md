@@ -908,4 +908,3 @@ Pre-commit hooks can run tests before each commit:
 **Related documentation:**
 - [TESTING_STRATEGY.md](../dev-docs/testing/TESTING_STRATEGY.md) - Detailed test strategy
 - [TEST_COVERAGE.md](../dev-docs/testing/TEST_COVERAGE.md) - Coverage plan
-- [ORACLE_TESTING.md](../dev-docs/testing/ORACLE_TESTING.md) - Oracle-based testing approach

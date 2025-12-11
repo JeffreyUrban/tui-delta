@@ -2,17 +2,18 @@
 
 ## Test Data Philosophy
 
-**All tests use synthetic data** - no real TEMPLATE_PLACEHOLDER
+**All tests use synthetic data** - no real TUI session logs
 
 **Rationale**:
 - **Reproducibility**: Synthetic patterns are deterministic
 - **Clarity**: Test intent is obvious from data generation
 - **Compactness**: Minimal test data for specific scenarios
-- **Privacy**: No risk of exposing TEMPLATE_PLACEHOLDER
+- **Privacy**: No risk of exposing sensitive session content
 
 **Example pattern**
 ```python
-TEMPLATE_PLACEHOLDER
+# Generate test input with clear sequences
+lines = ["line1\n", "line2\n", "update\x1b[2K\x1b[2K\n"]
 ```
 
 ### tests/test_tui-delta.py

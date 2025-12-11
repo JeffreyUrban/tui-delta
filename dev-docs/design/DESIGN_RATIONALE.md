@@ -1,93 +1,157 @@
-# Design Rationale and Trade-offs
+# Design Rationale
 
-**Purpose**: Document why features were included, excluded, or deferred. Explains design decisions and trade-offs.
+Key design decisions and trade-offs for tui-delta.
+
+**For implementation details, see [IMPLEMENTATION.md](IMPLEMENTATION.md)**
 
 ## Core Design Principles
 
-### 1. Unix Composition Over Feature Bloat
+### 1. Preserve All Meaningful Content
 
-**Principle**: Prefer documented composition patterns over built-in features when composition is efficient and clear.
+**Principle**: Never discard content that the user saw, even briefly.
+
+**Implementation**:
+- Cleared blocks output in full on first occurrence
+- Subsequent blocks output deltas (what changed)
+- Ephemeral content (spinners, progress) preserved in logs
+
+**Trade-off**: Larger log files vs simpler "final state only" approaches. Chose completeness over brevity.
+
+### 2. Real-time Streaming
+
+**Principle**: No buffering delays - output available immediately.
+
+**Implementation**:
+- Line-by-line processing throughout pipeline
+- Subprocess pipeline with pipes (not temporary files)
+- Flush after each line
+
+**Trade-off**: Cannot look arbitrarily far ahead. Chose responsiveness over perfect deduplication.
+
+### 3. Unix Pipeline Architecture
+
+**Principle**: Composable tools, each doing one thing well.
+
+**Why subprocess pipeline vs monolithic Python**:
+- ✅ Each stage testable independently
+- ✅ Failures isolated (one stage fails, others continue)
+- ✅ Natural streaming with OS pipe buffers
+- ✅ Can replace stages (e.g., different uniqseq implementation)
+- ❌ Slight overhead from process spawning (negligible for long-running sessions)
+
+**Alternative considered**: Single Python process with internal pipeline. Rejected due to tight coupling and harder testing.
+
+## Algorithm Choices
+
+### Clear Detection: N-1 Formula
+
+**Decision**: Clear `N-1` lines where N = count of clear sequences.
 
 **Rationale**:
-- Smaller, faster tool with less code to maintain
-- Users leverage existing knowledge of Unix tools
-- Better citizen of Unix ecosystem
-- Easier testing with fewer feature interactions
+- TUI apps typically emit N clear sequences when updating N lines
+- The Nth clear is for the current line (not yet displayed)
+- Previous N-1 lines are the ones being replaced
 
-**Application**:
-- ✅ Keep features when composition is inefficient, complex, or breaks streaming
-- ❌ Cut features when standard tools can achieve the same result simply
-- 📖 Document all composition patterns with tested examples
+**Protection rules**: Handle edge cases where N-1 is wrong (window titles, dialog boundaries).
 
----
+### Consolidation: Diff vs Full Output
 
-### 2. Streaming First
-
-**Principle**: All features must work with unbounded streams and bounded memory.
+**Decision**: First block in full, subsequent blocks show only changes.
 
 **Rationale**:
-- Real-time monitoring (`tail -f | tui-delta`)
-- Predictable memory usage
-- Scalable to any input size
-- True Unix filter behavior
+- User must see initial state to understand context
+- Subsequent blocks usually small changes (spinner updates, progress ticks)
+- Diff output dramatically reduces redundancy
 
-**Application**:
-- History limits (default 100k for stdin, unlimited for files)
-- Configurable via `--unlimited-history` when needed
-- Features that require full input are deferred or cut
+**Alternative considered**: Always output full blocks. Rejected due to excessive redundancy.
 
----
+### Normalization Before Comparison
 
-### 3. Core Competency Focus
-
-**Principle**: Focus on TEMPLATE_PLACEHOLDER, not TEMPLATE_PLACEHOLDER.
+**Decision**: Normalize patterns (spinners, timestamps) before diffing.
 
 **Rationale**:
-- TEMPLATE_PLACEHOLDER
+- Spinner characters change constantly but aren't meaningful differences
+- Timestamp updates aren't content changes
+- Without normalization, every spinner tick generates output
 
-**Application**:
-- ✅ Features that enhance TEMPLATE_PLACEHOLDER
-- ❌ Features better served by TEMPLATE_PLACEHOLDER
+**Implementation**: patterndb-yaml with YAML pattern definitions.
 
----
+## Configuration System
 
-## Feature Inclusion Decisions
+### YAML Profiles
 
-### ✅ Kept: TEMPLATE_PLACEHOLDER
+**Decision**: Profile-based configuration in YAML.
 
----
+**Why YAML over**:
+- JSON: YAML supports comments, more human-friendly for config
+- Python code: YAML is safer, doesn't require code execution
+- Command-line flags: Too many options, profiles group related settings
 
-## Feature Exclusion Decisions
+**Profile hierarchy**:
+- `claude_code` - Full processing for Claude Code
+- `generic` - Universal rules for any TUI
+- `minimal` - Barely any processing (baseline)
 
-### ❌ Cut: TEMPLATE_PLACEHOLDER
+### Separation: Clear Rules vs Patterns
 
----
+**Decision**: Separate YAML sections for clear protections and normalization patterns.
 
-## Implementation Trade-offs
+**Rationale**:
+- Clear protections: Affect what gets cleared (clear_lines stage)
+- Patterns: Affect comparison (consolidation stage)
+- Different purposes, different stages - keep separate
 
-### TEMPLATE_PLACEHOLDER
+## Dependency Choices
 
----
+### Why patterndb-yaml?
 
-## Tool Comparisons
+**Decision**: Use patterndb-yaml for pattern matching.
 
-### vs. TEMPLATE_PLACEHOLDER
+**Alternatives considered**:
+- Regex: Too complex for multi-line patterns with alternatives
+- Custom DSL: Reinventing the wheel
+- patterndb-yaml: Mature, handles complex patterns, already exists
 
----
+**Trade-off**: Adds syslog-ng dependency. Worth it for powerful pattern matching.
 
-## Removed Features and Rationale
+### Why uniqseq?
 
-### TEMPLATE_PLACEHOLDER
+**Decision**: Use uniqseq for sequence deduplication.
 
----
+**Rationale**:
+- Needed sequence tracking (not just line dedup)
+- uniqseq already existed for this purpose
+- Maintains focus: tui-delta = TUI capture + processing, uniqseq = dedup
 
-### Features Clarified During Planning
+## Output Format Choices
 
-**1. TEMPLATE_PLACEHOLDER**
+### State Prefixes (+: \: /:)
 
----
+**Decision**: Use 3-character prefixes to mark line states.
 
-## See Also
+**Rationale**:
+- Makes clear detection visible for debugging
+- Enables consolidation to distinguish block boundaries
+- Stripped before final output (via cut)
 
-- **IMPLEMENTATION.md** - Implementation overview
-- **ALGORITHM_DESIGN.md** - Core algorithm details
+**Why two cleared prefixes** (\\ and /):
+- Alternating prefixes show clear operation boundaries
+- Helps debugging: can see which lines belong to same clear operation
+
+## Scope Decisions
+
+### What tui-delta IS
+
+- TUI capture and delta processing
+- Profile-based configuration
+- Real-time streaming output
+- Content preservation
+
+### What tui-delta is NOT
+
+- Session replay tool (use asciinema)
+- Log analyzer (use grep, awk, etc.)
+- TUI framework (use rich, textual)
+- General log processor (use standard Unix tools)
+
+**Principle**: Focus on TUI capture/processing, delegate other concerns to existing tools.

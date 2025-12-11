@@ -80,10 +80,54 @@ Add release section with **today's date** (from `<env>` tag):
 
 ### 6. Clean Up Template Artifacts
 
-**Search for and fix/remove:**
-- `TEMPLATE_PLACEHOLDER` instances in all files
-- Unused test fixtures
-- Template comments or TODO items that should be resolved before release
+**CRITICAL: Must be thorough - search entire codebase.**
+
+**Process:**
+
+1. **Find ALL TEMPLATE_PLACEHOLDER and cookiecutter instances:**
+   ```bash
+   grep -r "TEMPLATE_PLACEHOLDER" . --exclude-dir=.git --exclude-dir=.venv
+   grep -r "cookiecutter" . --exclude-dir=.git --exclude-dir=.venv
+   ```
+
+2. **Review each instance and either:**
+   - Replace with actual content (dev-docs, templates)
+   - Remove the file if it's unused
+   - Verify it's intentional test data or code (e.g., variable names in tests)
+
+3. **Populate dev-docs with concise, non-redundant content:**
+   - **Check dev-docs/** files for TEMPLATE_PLACEHOLDER entries
+   - **Populate with internal/developer information** that's NOT in README or docs/
+   - **Keep concise and basic** - focus on architecture, algorithms, design decisions
+   - **Don't repeat** user-facing documentation - link to it instead
+   - **Guidance**: dev-docs are for internal implementation details, not user guides
+
+4. **Remove documentation for unimplemented features:**
+   - Search for references to unimplemented features (e.g., `oracle`, `fixture generation`)
+   - Check if implementation exists (e.g., does `tests/oracle.py` exist?)
+   - If not implemented: remove the documentation file and all references to it
+   - Search common patterns:
+     ```bash
+     # Find feature-specific docs that might be unimplemented
+     grep -r "oracle\|generator\|placeholder" dev-docs/ --exclude-dir=.git -i
+     ```
+   - Update all cross-references in CLAUDE.md, README files, and .claude/ docs
+
+5. **Find unused test fixtures:**
+   ```bash
+   # List all fixture files
+   find tests/fixtures -type f
+
+   # Search for usage of each fixture file in test code
+   grep -r "fixture-name" tests/
+   ```
+
+6. **Remove any files that are:**
+   - Template placeholders never filled in
+   - Test fixtures not referenced by any tests
+   - TODO/WIP files that should be completed or removed
+
+**Don't skip this step or do it superficially - every TEMPLATE_PLACEHOLDER must be addressed.**
 
 ### 7. Update Documentation
 
