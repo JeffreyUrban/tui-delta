@@ -15,9 +15,9 @@ No unreleased changes yet.
 
 Initial release.
 
-### Added
+### Features
 - TUI application capture and delta processing
-- Profile-based processing with built-in profiles for Claude Code, generic TUI apps, and minimal processing
+- Profile-based processing with built-in profile for Claude Code
 - Clear detection and consolidation for terminal output
 - Real-time streaming output
 - Deduplication of repeated content blocks via uniqseq
