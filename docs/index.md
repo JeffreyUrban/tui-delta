@@ -54,6 +54,6 @@ This wraps Claude Code, processes its output in real-time, and saves to `session
 
 - **[Getting Started](getting-started/installation.md)** - Installation and quick start
 - **[Use Cases](use-cases/ai-assistants/ai-assistants.md)** - Real-world applications
-- **[Guides](guides/common-patterns.md)** - How-to guides and patterns
+- **[Guides](guides/custom-profiles.md)** - Custom profiles and configuration
 - **[Reference](reference/cli.md)** - CLI and Python API documentation
-- **[About](about/algorithm.md)** - Algorithm details and design decisions
+- **[About](about/contributing.md)** - Contributing and development

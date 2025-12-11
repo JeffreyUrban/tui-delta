@@ -86,4 +86,4 @@ All processing happens in real-time:
 
 - **[Quick Start](quick-start.md)** - Try tui-delta with simple examples
 - **[CLI Reference](../reference/cli.md)** - Complete command options
-- **[Algorithm Details](../about/algorithm.md)** - Deep dive into how it works
+- **[Custom Profiles](../guides/custom-profiles.md)** - Create profiles for your TUI apps
