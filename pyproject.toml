@@ -6,7 +6,7 @@ build-backend = "hatchling.build"
 name = "tui_delta"
 # Version is automatically determined from git tags via hatch-vcs
 dynamic = ["version"]
-description = "Run a TUI (terminal user interface) application with real-time delta processing"
+description = "Run a TUI application (AI assistant sessions, et al) with real-time delta processing for monitoring and logging. Supports Claude Code."
 readme = "README.md"
 license = {file = "LICENSE"}
 authors = [
