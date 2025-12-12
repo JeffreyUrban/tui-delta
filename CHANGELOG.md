@@ -11,6 +11,10 @@ No unreleased changes yet.
 
 ---
 
+## [0.1.1] - 2025-12-11
+
+Updated description.
+
 ## [0.1.0] - 2025-12-11
 
 Initial release.
