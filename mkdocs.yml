@@ -1,6 +1,6 @@
 site_name: TUI Delta
 site_url: https://tui-delta.readthedocs.io/
-site_description: Run a TUI (terminal user interface) application with real-time delta processing
+site_description: Run a TUI application (AI assistant sessions, et al) with real-time delta processing for monitoring and logging. Supports Claude Code.
 repo_url: https://github.com/JeffreyUrban/tui-delta
 repo_name: JeffreyUrban/tui-delta
 
