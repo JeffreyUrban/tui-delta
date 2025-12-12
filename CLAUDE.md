@@ -30,6 +30,40 @@ This file is the **entry point** for Claude guidance. Detailed guidance is organ
 
 **State your answers to these questions and get user agreement BEFORE implementing.**
 
+### Never Work Around Problems - Fix Them
+
+**MANDATORY: Before proposing any solution that involves skipping, bypassing, or working around an issue:**
+
+**STOP and ask these questions:**
+1. "Am I fixing the root problem or hiding it?"
+2. "Would this solution work if I removed the conditional/skip logic?"
+3. "Am I adding complexity to avoid fixing something else?"
+
+**Red flags that indicate a workaround instead of a fix:**
+- Adding conditional logic to skip tests/checks
+- Calling issues "unrelated", "pre-existing", or "out of scope"
+- Creating separate PRs to "deal with later"
+- Weakening assertions or requirements
+- Adding `|| true`, `--no-verify`, or similar bypass flags
+
+**Required action when you encounter blocking issues:**
+- Treat ALL blocking issues as in-scope, regardless of when they were introduced
+- Fix the root cause completely before proceeding
+- If the fix seems large, ASK the user about approach - don't skip it
+
+**Example of WRONG approach:**
+```yaml
+# WRONG: Skipping tests to avoid fixing the real problem
+- run: brew test-bot
+  if: steps.check.outputs.formula-changes == 'true'  # ← Workaround!
+```
+
+**Example of CORRECT approach:**
+```ruby
+# RIGHT: Fix the actual problem
+sha256 "411b24aea01846aa0c1f6fbb843c83503543d6fe7bec2898f736b613428f9257"  # ← Real fix!
+```
+
 ### Version Numbers
 
 **NEVER mention version numbers** (v0.x, v1.x, etc.) unless they have been explicitly agreed upon and documented in planning. Use:
@@ -114,6 +148,24 @@ Before recommending user run ANY code that modifies their files or data:
 - Present the evidence with specific references (file paths and line numbers where applicable)
 - If no supporting evidence is found, acknowledge the assumption and ask for clarification
 - Example: "I assumed X based on the comment at normalization_engine.py:117 which states '...'"
+
+## Apologies and Promises Are Not Solutions
+
+**When you catch yourself:**
+- Apologizing for a mistake
+- Promising to "do better next time"
+- Listing "prevention strategies"
+- Saying you'll "watch for red flags"
+
+**STOP. That's not a solution.**
+
+**Instead, you MUST:**
+1. Identify which guidance document failed to prevent this
+2. Propose a specific, concrete change to that document
+3. Show the exact text to add/modify
+4. Explain how this change would have prevented the mistake
+
+**If you can't identify a documentation change, the reflection is incomplete.**
 
 ## Navigation
 
