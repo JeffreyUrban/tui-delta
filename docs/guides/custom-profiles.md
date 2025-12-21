@@ -37,7 +37,7 @@ profiles:
 Pass the custom profile file with `--rules-file`:
 
 ```bash
-tui-delta run --rules-file my-profiles.yaml --profile test_profile -- <command>
+tui-delta into output.log --rules-file my-profiles.yaml --profile test_profile -- <command>
 ```
 
 ## Profile Fields
@@ -110,8 +110,8 @@ The `normalization_patterns` section uses [patterndb-yaml](https://patterndb-yam
 Test on your actual TUI application:
 
 ```console
-$ tui-delta run --rules-file my-profile.yaml --profile my_custom \
-  -- ./myapp | less -R
+$ tui-delta into output.log --rules-file my-profile.yaml --profile my_custom -- ./myapp
+$ less -R output.log
 ```
 
 Check output looks correct and adjust protections or patterns as needed.

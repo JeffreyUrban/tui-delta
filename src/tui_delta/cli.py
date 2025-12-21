@@ -13,7 +13,8 @@ app = typer.Typer(
     name="tui-delta",
     help=(
         "Run TUI applications with real-time delta processing "
-        "for monitoring and logging AI assistant sessions"
+        "for monitoring and logging AI assistant sessions.\n\n"
+        "Example: tui-delta into session.log --profile claude_code -- claude"
     ),
     context_settings={"help_option_names": ["-h", "--help"]},
     add_completion=False,
@@ -48,10 +49,16 @@ def main(
 
 
 @app.command()
-def run(
-    command: list[str] = typer.Argument(
+def into(
+    output_file: Path = typer.Argument(
         ...,  # type: ignore[arg-type]  # Ellipsis is valid Typer syntax for required args
-        help="TUI command to run (e.g., 'claude code' or 'npm test')",
+        help="Output file to write processed deltas (can be a named pipe)",
+        metavar="OUTPUT-FILE",
+    ),
+    command_line: list[str] = typer.Argument(
+        ...,  # type: ignore[arg-type]  # Ellipsis is valid Typer syntax for required args
+        help="Full command-line to run, including arguments and options",
+        metavar="COMMAND-LINE...",
     ),
     profile: Optional[str] = typer.Option(
         None,
@@ -68,31 +75,40 @@ def run(
     ),
 ) -> None:
     """
-    Run a TUI application with real-time delta processing.
+    Run a TUI application and pipe processed output into a file.
 
     Wraps the TUI application to capture all terminal output, processes it through
-    the pipeline, and outputs processed deltas to stdout.
+    the pipeline, and writes processed deltas to the output file.
 
     The TUI displays and operates normally - the user can interact with it as if
-    it weren't wrapped. Meanwhile, the processed output streams to stdout in real-time.
+    it weren't wrapped. Meanwhile, the processed output streams to the file in real-time.
+
+    The output file can be a regular file or a user-created named pipe for
+    post-processing with other tools.
 
     \b
     Examples:
-        # Run claude code and save processed deltas
-        tui-delta run -- claude code > session-deltas.txt
+        # Run claude and save processed deltas
+        tui-delta into session.log --profile claude_code -- claude
 
-        # Use a specific profile
-        tui-delta run --profile generic -- npm test > test-deltas.txt
+        # Use a different profile
+        tui-delta into test.log --profile generic -- npm test
 
-        # Use custom rules
-        tui-delta run --rules-file my-rules.yaml -- ./myapp
+        # Run with command-line options
+        tui-delta into output.txt -- python script.py --verbose
+
+        # Use a named pipe for post-processing
+        mkfifo /tmp/my-pipe
+        cat /tmp/my-pipe | other-tool > final.txt &
+        tui-delta into /tmp/my-pipe --profile claude_code -- claude
 
     \b
     Pipeline:
         clear_lines → consolidate → uniqseq → cut → uniqseq
     """
     exit_code = run_tui_with_pipeline(
-        command=command,
+        command_line=command_line,
+        output_file=output_file,
         profile=profile,
         rules_file=rules_file,
     )

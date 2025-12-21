@@ -17,6 +17,7 @@ profiles:
       - task_todos_time_tokens_down
       - task_todos
       - activity_time_tokens_down
+      - activity_spinner_thought
       - activity_spinner
       - thinking
       - action
@@ -160,6 +161,21 @@ patterns:
       - text: "ing"
       - text: "… (esc to interrupt)"
     output: "[activity:{verb}]"
+
+  # Activity spinner with thought time - includes thinking duration
+  # Example: "· Manifesting… (esc to interrupt · thought for 2s)"
+  activity_spinner_thought:
+    description: "Activity with completed thinking time"
+    pattern:
+      - char: "·✢✳✶✻✽"
+      - text: " "
+      - field: verb
+      - text: "ing"
+      - text: "… (esc to interrupt · thought for "
+      - field: time
+        parser: NUMBER
+      - text: "s)"
+    output: "[activity-thought:{verb}]"
 
   # Thinking indicator
   # Example: "∴ Thought for 5s (ctrl+o to show thinking)"

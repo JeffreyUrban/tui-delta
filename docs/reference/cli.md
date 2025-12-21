@@ -4,18 +4,19 @@ Complete command-line reference for `tui-delta`.
 
 ## Commands
 
-### `tui-delta run`
+### `tui-delta into`
 
-Run a TUI application with real-time delta processing.
+Run a TUI application and pipe processed output into a file.
 
 **Usage:**
 
 ```console
-$ tui-delta run [OPTIONS] -- COMMAND...
+$ tui-delta into OUTPUT-FILE [OPTIONS] -- COMMAND...
 ```
 
 **Arguments:**
 
+- `OUTPUT-FILE` - Output file to write processed deltas (can be a named pipe)
 - `COMMAND...` - The TUI command to run (e.g., `claude code`, `npm test`)
 
 **Options:**
@@ -29,24 +30,32 @@ $ tui-delta run [OPTIONS] -- COMMAND...
 Basic usage with Claude Code:
 
 ```console
-$ tui-delta run --profile claude_code -- claude code > session.log
+$ tui-delta into session.log --profile claude_code -- claude code
 ```
 
 Use generic profile for other TUI apps:
 
 ```console
-$ tui-delta run --profile generic -- aider
+$ tui-delta into aider.log --profile generic -- aider
 ```
 
 Custom rules file:
 
 ```console
-$ tui-delta run --rules-file my-rules.yaml -- ./myapp
+$ tui-delta into output.log --rules-file my-rules.yaml -- ./myapp
+```
+
+Use a named pipe for post-processing:
+
+```console
+$ mkfifo /tmp/my-pipe
+$ cat /tmp/my-pipe | other-tool > final.txt &
+$ tui-delta into /tmp/my-pipe --profile claude_code -- claude
 ```
 
 **Pipeline:**
 
-The `run` command processes output through:
+The `into` command processes output through:
 
 ```
 script → clear_lines → consolidate → uniqseq → cut → additional_pipeline
@@ -118,11 +127,18 @@ Minimal processing with only base clear detection.
 
 ## Output
 
-All commands output to stdout. Use shell redirection to save:
+The `into` command writes processed output to the specified file:
 
 ```console
-$ tui-delta run -- claude code > session.log  # Display and save
-$ tui-delta run -- claude code 2>&1 > full-log.txt  # Include stderr
+$ tui-delta into session.log --profile claude_code -- claude  # Save to file
+```
+
+For post-processing, use a named pipe:
+
+```console
+$ mkfifo /tmp/pipe
+$ tui-delta into /tmp/pipe -- claude &
+$ cat /tmp/pipe | your-tool > final.txt
 ```
 
 ## Exit Codes
@@ -138,7 +154,7 @@ $ tui-delta run -- claude code 2>&1 > full-log.txt  # Include stderr
 The `script` command used by tui-delta respects terminal size. Set `COLUMNS` and `LINES` for consistent output:
 
 ```console
-$ COLUMNS=120 LINES=40 tui-delta run -- claude code
+$ COLUMNS=120 LINES=40 tui-delta into session.log --profile claude_code -- claude
 ```
 
 ## Next Steps

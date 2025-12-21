@@ -28,7 +28,7 @@ pip install tui-delta
 To understand how tui-delta works, you can test with simple commands:
 
 ```bash
-printf "line1\nline2\nline3\n" | tui-delta run --profile minimal -- cat
+printf "line1\nline2\nline3\n" | tui-delta into /tmp/output.txt --profile minimal -- cat
 ```
 
 The `minimal` profile passes input through with minimal processing.
@@ -49,7 +49,7 @@ This shows the built-in profiles: `claude_code`, `generic`, and `minimal`.
 The primary use case - wrap Claude Code and capture the session:
 
 ```console
-$ tui-delta run --profile claude_code -- claude code > session.log
+$ tui-delta into session.log --profile claude_code -- claude code
 ```
 
 This:
@@ -78,7 +78,10 @@ For clean plain text logs without colors or formatting, pipe through a filter:
 
 **Using sed (most portable):**
 ```bash
-tui-delta run -- claude code | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g' > clean.log
+# Create a named pipe for post-processing
+mkfifo /tmp/tui-pipe
+tui-delta into /tmp/tui-pipe --profile claude_code -- claude &
+sed 's/\x1b\[[0-9;]*[a-zA-Z]//g' < /tmp/tui-pipe > clean.log
 ```
 
 **Using ansifilter (recommended if available):**
@@ -87,16 +90,18 @@ tui-delta run -- claude code | sed 's/\x1b\[[0-9;]*[a-zA-Z]//g' > clean.log
 brew install ansifilter  # macOS
 apt install ansifilter   # Ubuntu/Debian
 
-# Use
-tui-delta run -- claude code | ansifilter > clean.log
+# Create a named pipe for post-processing
+mkfifo /tmp/tui-pipe
+tui-delta into /tmp/tui-pipe --profile claude_code -- claude &
+ansifilter < /tmp/tui-pipe > clean.log
 ```
 
 ## Common Patterns
 
-### Redirect to File
+### Save to File
 
 ```console
-$ tui-delta run --profile minimal -- echo "test output" > output.log
+$ tui-delta into output.log --profile minimal -- echo "test output"
 ```
 
 ### Use with Different Profiles
