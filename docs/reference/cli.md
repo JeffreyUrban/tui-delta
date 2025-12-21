@@ -23,6 +23,7 @@ $ tui-delta into OUTPUT-FILE [OPTIONS] -- COMMAND...
 
 - `--profile`, `-p` TEXT - Clear rules profile (claude_code, generic, minimal, or custom)
 - `--rules-file` FILE - Path to custom clear_rules.yaml file
+- `--stage-outputs` - Save output from each pipeline stage to OUTPUT-FILE-N-stage.bin
 - `--help`, `-h` - Show help message
 
 **Examples:**
@@ -53,6 +54,13 @@ $ cat /tmp/my-pipe | other-tool > final.txt &
 $ tui-delta into /tmp/my-pipe --profile claude_code -- claude
 ```
 
+Capture pipeline stage outputs for debugging:
+
+```console
+$ tui-delta into session.log --stage-outputs --profile claude_code -- claude code
+# Creates: session.log-0-script.bin, session.log-1-clear_lines.bin, etc.
+```
+
 **Pipeline:**
 
 The `into` command processes output through:
@@ -62,6 +70,85 @@ script → clear_lines → consolidate → uniqseq → cut → additional_pipeli
 ```
 
 Where `additional_pipeline` is profile-specific (e.g., final uniqseq for claude_code).
+
+**Stage Outputs:**
+
+When `--stage-outputs` is enabled, the command captures output from each pipeline stage:
+
+- `OUTPUT-FILE-0-script.bin` - Raw script output (before any processing)
+- `OUTPUT-FILE-1-clear_lines.bin` - After clear_lines processing (with prefixes)
+- `OUTPUT-FILE-2-consolidate.bin` - After consolidate_clears (deduplicated blocks)
+- `OUTPUT-FILE-3-uniqseq.bin` - After first uniqseq (deduplicated kept lines)
+- `OUTPUT-FILE-4-cut.bin` - After cut (prefixes removed)
+- `OUTPUT-FILE-5-additional.bin` - After additional_pipeline (if present)
+- `OUTPUT-FILE` - Final processed output
+
+Use stage outputs to:
+- Debug pipeline processing issues
+- Understand how each stage transforms the data
+- Develop custom profiles by examining intermediate results
+- Verify clear detection and consolidation behavior
+
+### `tui-delta decode-escapes`
+
+Decode escape control sequences to readable text.
+
+**Usage:**
+
+```console
+$ tui-delta decode-escapes INPUT-FILE [OUTPUT-FILE]
+```
+
+**Arguments:**
+
+- `INPUT-FILE` - Input file with escape sequences (required)
+- `OUTPUT-FILE` - Output file for decoded text (optional, defaults to stdout)
+
+**Description:**
+
+Converts control sequences like clear-line, cursor movement, and window title to readable text markers. Color and formatting sequences (SGR) are passed through unchanged.
+
+**Examples:**
+
+Decode to stdout:
+
+```console
+$ tui-delta decode-escapes session.log-0-script.bin
+```
+
+Decode to file:
+
+```console
+$ tui-delta decode-escapes session.log-0-script.bin decoded.txt
+```
+
+Pipe to less for viewing:
+
+```console
+$ tui-delta decode-escapes session.log-0-script.bin | less -R
+```
+
+Examine raw script output with decoded escapes:
+
+```console
+$ tui-delta into session.log --stage-outputs --profile claude_code -- claude code
+$ tui-delta decode-escapes session.log-0-script.bin
+```
+
+**Decoded sequences:**
+
+- `[clear_line]` - Clear line (ESC[2K)
+- `[cursor_up]` - Cursor up (ESC[1A)
+- `[cursor_to_bol]` - Cursor to beginning of line (ESC[G)
+- `[cursor_to_home]` - Cursor to home position (ESC[H)
+- `[screen_clear]` - Clear screen (ESC[2J, ESC[3J)
+- `[window-title:...]` - Window title sequences
+- `[window-title-icon:...]` - Window title with icon
+- `[bracketed_paste_on/off]` - Bracketed paste mode
+- `[sync_output_on/off]` - Synchronized output mode
+- `[focus_events_on/off]` - Focus event mode
+
+Color and formatting sequences (bold, italic, colors) are preserved unchanged.
 
 ### `tui-delta list-profiles`
 

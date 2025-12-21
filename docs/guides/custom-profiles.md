@@ -116,6 +116,32 @@ $ less -R out.log
 
 Check output looks correct and adjust protections or patterns as needed.
 
+### Debugging with Stage Outputs
+
+Use `--stage-outputs` to examine how each pipeline stage processes your TUI's output:
+
+```console
+$ tui-delta into out.log --stage-outputs --rules-file my-rules.yaml --profile custom -- ./myapp
+```
+
+This creates files showing output at each stage:
+- `out.log-0-script.bin` - Raw output with escape sequences
+- `out.log-1-clear_lines.bin` - After clear detection
+- `out.log-2-consolidate.bin` - After consolidation
+- And more...
+
+Decode escape sequences to readable text:
+
+```console
+$ tui-delta decode-escapes out.log-0-script.bin
+```
+
+This helps you understand:
+- Which lines are being cleared
+- How consolidation deduplicates content
+- Whether your normalization patterns are matching
+- Where adjustments to your profile are needed
+
 For AI assistants like Claude Code, see [AI Assistant Logging](../use-cases/ai-assistants/ai-assistants.md).
 
 ## Next Steps

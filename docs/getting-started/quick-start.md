@@ -108,6 +108,24 @@ $ tui-delta into output.log --profile minimal -- echo "test output"
 
 Start with `generic` profile for non-Claude-Code applications, then customize as needed. See [Custom Profiles](../guides/custom-profiles.md) for creating profiles tailored to your TUI.
 
+## Debugging
+
+If you need to understand how tui-delta processes output or debug pipeline issues:
+
+**Capture stage outputs:**
+```console
+$ tui-delta into session.log --stage-outputs --profile claude_code -- claude code
+# Creates: session.log-0-script.bin, session.log-1-clear_lines.bin, etc.
+```
+
+**Decode escape sequences:**
+```console
+$ tui-delta decode-escapes session.log-0-script.bin
+# Shows readable text like [clear_line] instead of escape codes
+```
+
+See the [CLI Reference](../reference/cli.md) for complete details.
+
 ## Next Steps
 
 - **[Basic Concepts](basic-concepts.md)** - Understand how tui-delta works
