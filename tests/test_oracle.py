@@ -1,7 +1,9 @@
 """Tests for clear_lines module behaviors."""
 
 import sys
+import tempfile
 from collections import deque
+from pathlib import Path
 
 import pytest
 
@@ -472,10 +474,15 @@ class TestRunBehaviors:
         from tui_delta import run_tui_with_pipeline
 
         # Use simple echo command
-        exit_code = run_tui_with_pipeline(["echo", "test"])
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".log") as f:
+            output_file = Path(f.name)
+        try:
+            exit_code = run_tui_with_pipeline(["echo", "test"], output_file)
 
-        # Should complete successfully
-        assert exit_code in (0, 1)  # 0 or 1 acceptable due to script wrapper
+            # Should complete successfully
+            assert exit_code in (0, 1)  # 0 or 1 acceptable due to script wrapper
+        finally:
+            output_file.unlink(missing_ok=True)
 
     def test_build_pipeline_minimal_profile(self):
         """Test build_pipeline_commands with minimal profile."""
@@ -503,7 +510,12 @@ class TestRunBehaviors:
         from tui_delta import run_tui_with_pipeline
 
         # Command that doesn't exist
-        exit_code = run_tui_with_pipeline(["nonexistent_command_xyz"])
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".log") as f:
+            output_file = Path(f.name)
+        try:
+            exit_code = run_tui_with_pipeline(["nonexistent_command_xyz"], output_file)
 
-        # Should return non-zero exit code
-        assert exit_code != 0
+            # Should return non-zero exit code
+            assert exit_code != 0
+        finally:
+            output_file.unlink(missing_ok=True)

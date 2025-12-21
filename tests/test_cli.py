@@ -4,6 +4,8 @@ import os
 import re
 import subprocess
 import sys
+import tempfile
+from pathlib import Path
 
 import pytest
 from typer.testing import CliRunner
@@ -37,14 +39,14 @@ def test_cli_help():
     assert result.exit_code == 0
     # Strip ANSI codes for reliable string matching across environments
     output = strip_ansi(result.stdout.lower())
-    assert "run" in output
+    assert "into" in output
     assert "list-profiles" in output
 
 
 @pytest.mark.unit
 def test_run_command_help():
-    """Test 'run' command help."""
-    result = runner.invoke(app, ["run", "--help"], env=TEST_ENV)
+    """Test 'into' command help."""
+    result = runner.invoke(app, ["into", "--help"], env=TEST_ENV)
     assert result.exit_code == 0
     output = strip_ansi(result.stdout.lower())
     assert "tui application" in output
@@ -65,28 +67,44 @@ def test_list_profiles_command():
 
 @pytest.mark.integration
 def test_run_command_basic():
-    """Test 'run' command with simple echo."""
+    """Test 'into' command with simple echo."""
     # Run a simple command that outputs a few lines
-    result = runner.invoke(app, ["run", "--profile", "minimal", "--", "echo", "test"], env=TEST_ENV)
-    # Exit code might be non-zero due to script command behavior
-    # Just verify it ran without Python errors
-    assert "test" in result.stdout or result.exit_code in [0, 1]
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".log") as f:
+        output_file = Path(f.name)
+    try:
+        result = runner.invoke(
+            app,
+            ["into", str(output_file), "--profile", "minimal", "--", "echo", "test"],
+            env=TEST_ENV,
+        )
+        # Exit code might be non-zero due to script command behavior
+        # Just verify it ran without Python errors
+        assert "test" in result.stdout or result.exit_code in [0, 1]
+    finally:
+        output_file.unlink(missing_ok=True)
 
 
 @pytest.mark.unit
 def test_run_command_invalid_profile():
-    """Test 'run' command with invalid profile."""
-    result = runner.invoke(
-        app, ["run", "--profile", "nonexistent", "--", "echo", "test"], env=TEST_ENV
-    )
-    # Should fail with error about profile
-    assert result.exit_code != 0
+    """Test 'into' command with invalid profile."""
+    with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".log") as f:
+        output_file = Path(f.name)
+    try:
+        result = runner.invoke(
+            app,
+            ["into", str(output_file), "--profile", "nonexistent", "--", "echo", "test"],
+            env=TEST_ENV,
+        )
+        # Should fail with error about profile
+        assert result.exit_code != 0
+    finally:
+        output_file.unlink(missing_ok=True)
 
 
 @pytest.mark.unit
 def test_run_command_requires_command():
-    """Test 'run' command requires TUI command."""
-    result = runner.invoke(app, ["run"], env=TEST_ENV)
+    """Test 'into' command requires TUI command."""
+    result = runner.invoke(app, ["into", "/tmp/test.log"], env=TEST_ENV)
     assert result.exit_code != 0
     # Should show error about missing command
 
@@ -103,7 +121,7 @@ def test_list_profiles_shows_descriptions():
 
 @pytest.mark.integration
 def test_run_with_custom_rules_file(tmp_path):
-    """Test 'run' command with custom rules file."""
+    """Test 'into' command with custom rules file."""
     # Create a simple custom profile YAML
     rules_file = tmp_path / "custom.yaml"
     rules_file.write_text("""
@@ -115,8 +133,11 @@ profiles:
     normalization_patterns: []
 """)
 
+    output_file = tmp_path / "output.log"
     result = runner.invoke(
-        app, ["run", "--rules-file", str(rules_file), "--", "echo", "test"], env=TEST_ENV
+        app,
+        ["into", str(output_file), "--rules-file", str(rules_file), "--", "echo", "test"],
+        env=TEST_ENV,
     )
     # Should run without errors (exit code might vary due to script)
     assert result.exit_code in [0, 1]
@@ -124,11 +145,11 @@ profiles:
 
 @pytest.mark.unit
 def test_version_option():
-    """Test --version option on run command."""
+    """Test --version option on into command."""
     # Version callback is defined but needs to be on a command
     # Test that version info is accessible
     result = subprocess.run(
-        [sys.executable, "-m", "tui_delta.cli", "run", "--help"], capture_output=True, text=True
+        [sys.executable, "-m", "tui_delta.cli", "into", "--help"], capture_output=True, text=True
     )
     assert result.returncode == 0
     # Just verify CLI is working
@@ -136,21 +157,28 @@ def test_version_option():
 
 @pytest.mark.integration
 def test_run_profiles_integration():
-    """Test that all built-in profiles work with run command."""
+    """Test that all built-in profiles work with into command."""
     profiles = ["claude_code", "generic", "minimal"]
 
     for profile in profiles:
-        result = runner.invoke(
-            app, ["run", "--profile", profile, "--", "echo", "test"], env=TEST_ENV
-        )
-        # Should not crash (exit code may vary due to script command)
-        # Just verify no Python exceptions
-        assert "Traceback" not in result.stdout
-        # result.stderr may not be separately captured, check if available
+        with tempfile.NamedTemporaryFile(mode="w", delete=False, suffix=".log") as f:
+            output_file = Path(f.name)
         try:
-            assert "Traceback" not in result.stderr
-        except (ValueError, AttributeError):
-            pass  # stderr not separately captured
+            result = runner.invoke(
+                app,
+                ["into", str(output_file), "--profile", profile, "--", "echo", "test"],
+                env=TEST_ENV,
+            )
+            # Should not crash (exit code may vary due to script command)
+            # Just verify no Python exceptions
+            assert "Traceback" not in result.stdout
+            # result.stderr may not be separately captured, check if available
+            try:
+                assert "Traceback" not in result.stderr
+            except (ValueError, AttributeError):
+                pass  # stderr not separately captured
+        finally:
+            output_file.unlink(missing_ok=True)
 
 
 @pytest.mark.unit

@@ -40,15 +40,18 @@ with open(fixture_path, "rb") as f:
         if not REAL_CLAUDE_SESSION.exists():
             pytest.skip(f"Real Claude Code session fixture not found: {REAL_CLAUDE_SESSION}")
 
-        # Capture stdout by redirecting in subprocess
+        # Capture output to file
+        output_file = tmp_path / "output.log"
         test_script = tmp_path / "test_runner.py"
         test_script.write_text(f'''
 import sys
+from pathlib import Path
 sys.path.insert(0, r"{Path(__file__).parent.parent / "src"}")
 from tui_delta.run import run_tui_with_pipeline
 
 exit_code = run_tui_with_pipeline(
-    command={mock_tui_command},
+    command_line={mock_tui_command},
+    output_file=Path(r"{output_file}"),
     profile="claude_code",
 )
 sys.exit(exit_code)
@@ -63,8 +66,9 @@ sys.exit(exit_code)
         # Verify pipeline completed successfully
         assert result.returncode == 0, f"Pipeline failed: {result.stderr.decode()}"
 
-        # Verify we got output
-        output = result.stdout
+        # Verify we got output in the file
+        assert output_file.exists(), "Output file was not created"
+        output = output_file.read_bytes()
         assert len(output) > 0, "Pipeline produced no output"
 
         # Verify output is reasonable (not just whitespace)
