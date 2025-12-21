@@ -22,6 +22,9 @@ profiles:
       - thinking
       - action
       - user_input
+      # Catch-all patterns LAST to handle unknown future states
+      - task_todos_unknown
+      - activity_spinner_unknown
     additional_pipeline: "uniqseq --track '^\\S' --quiet --max-history 5 --window-size 1 --max-unique-sequences 0"
 
   generic:
@@ -130,6 +133,21 @@ patterns:
       - text: " (esc to interrupt · ctrl+t to show todos)"
     output: "[task-todos:{task}]"
 
+  # Catch-all for unknown task states (future-proofing)
+  # Matches: "· Task name… (esc to interrupt · ctrl+t to show todos<anything>)"
+  # This pattern should be LAST in profile to catch unknown intermediate states
+  task_todos_unknown:
+    description: "Catch-all for unknown task spinner states"
+    pattern:
+      - char: "·✢✳✶✻✽"
+      - text: " "
+      - field: task
+      - text: "…"
+      - text: " (esc to interrupt · ctrl+t to show todos"
+      - field: unknown_state
+      - text: ")"
+    output: "[task-unknown:{task}]"
+
   # Activity with time and tokens
   # Examples:
   #   "✽ Whirlpooling… (esc to interrupt · 16s · ↓ 1.0k tokens)"
@@ -176,6 +194,21 @@ patterns:
         parser: NUMBER
       - text: "s)"
     output: "[activity-thought:{verb}]"
+
+  # Catch-all for unknown activity states (future-proofing)
+  # Matches: "· Verbing… (esc to interrupt<anything>)"
+  # This pattern should be LAST in profile to catch unknown intermediate states
+  activity_spinner_unknown:
+    description: "Catch-all for unknown activity spinner states"
+    pattern:
+      - char: "·✢✳✶✻✽"
+      - text: " "
+      - field: verb
+      - text: "ing"
+      - text: "… (esc to interrupt"
+      - field: unknown_state
+      - text: ")"
+    output: "[activity-unknown:{verb}]"
 
   # Thinking indicator
   # Example: "∴ Thought for 5s (ctrl+o to show thinking)"
