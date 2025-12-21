@@ -15,7 +15,7 @@ Primary use case: capturing and logging AI assistant interactive sessions.
 
 <!-- interactive-only -->
 ```console
-$ tui-delta run --profile claude_code -- claude code > session.log
+$ tui-delta into session.log --profile claude_code -- claude code
 ```
 
 Captures the full session with everything visible in the view and scrollback:
@@ -30,7 +30,7 @@ Captures the full session with everything visible in the view and scrollback:
 
 <!-- interactive-only -->
 ```console
-$ tui-delta run --profile claude_code -- claude code > session.log
+$ tui-delta into session.log --profile claude_code -- claude code
 ```
 
 Interact in terminal AND save to file simultaneously.
@@ -50,8 +50,10 @@ For clean plain text logs without ANSI colors or formatting:
 
 **Using sed (most portable):**
 ```bash
-tui-delta run --profile claude_code -- claude code | \
-  sed 's/\x1b\[[0-9;]*[a-zA-Z]//g' > clean-session.log
+# Create a named pipe for post-processing
+mkfifo /tmp/tui-pipe
+tui-delta into /tmp/tui-pipe --profile claude_code -- claude code &
+sed 's/\x1b\[[0-9;]*[a-zA-Z]//g' < /tmp/tui-pipe > clean-session.log
 ```
 
 **Using ansifilter (recommended if available):**
@@ -60,9 +62,10 @@ tui-delta run --profile claude_code -- claude code | \
 brew install ansifilter  # macOS
 apt install ansifilter   # Ubuntu/Debian
 
-# Use
-tui-delta run --profile claude_code -- claude code | \
-  ansifilter > clean-session.log
+# Create a named pipe for post-processing
+mkfifo /tmp/tui-pipe
+tui-delta into /tmp/tui-pipe --profile claude_code -- claude code &
+ansifilter < /tmp/tui-pipe > clean-session.log
 ```
 
 This is useful for:
@@ -77,9 +80,9 @@ Start with the `generic` profile:
 
 <!-- interactive-only -->
 ```console
-$ tui-delta run --profile generic -- aider
-$ tui-delta run --profile generic -- cursor
-$ tui-delta run --profile generic -- cline
+$ tui-delta into aider.log --profile generic -- aider
+$ tui-delta into cursor.log --profile generic -- cursor
+$ tui-delta into cline.log --profile generic -- cline
 ```
 
 For best results, you'll likely need to create a custom profile. See [Custom Profiles](../../guides/custom-profiles.md).
@@ -94,8 +97,7 @@ Keep records of AI-assisted development sessions:
 
 <!-- interactive-only -->
 ```console
-$ tui-delta run --profile claude_code -- claude code \
-  > "session-$(date +%Y%m%d-%H%M%S).log"
+$ tui-delta into "$(date +%Y%m%d).log" --profile claude_code -- claude code
 ```
 
 Creates timestamped log files for each session.
@@ -115,7 +117,7 @@ When unexpected behavior occurs:
 
 <!-- interactive-only -->
 ```console
-$ tui-delta run --profile claude_code -- claude code 2>&1 > full-session.log
+$ tui-delta into full-session.log --profile claude_code -- claude code
 ```
 
 Captures both stdout and stderr for debugging.
@@ -130,15 +132,33 @@ Logged sessions:
 - Viewable with standard Unix tools (`less`, `grep`, etc.)
 
 !!! tip "Monitoring output while logging"
-    To monitor output while logging, redirect to a file and monitor with `tail -f` in another terminal:
+    To monitor output while logging, use `tail -f` in another terminal:
 
     ```bash
-    tui-delta run -- claude code > session.log
+    tui-delta into session.log --profile claude_code -- claude
     # Then in another terminal:
     tail -f session.log
     ```
 
-    Note: `tui-delta run -- claude code | tee session.log` will likely garble the display since tee's stdout competes with the TUI.
+### Searching Session History
+
+Search through your session while Claude is running:
+
+```bash
+# In one terminal: run Claude
+tui-delta into session.log --profile claude_code -- claude code
+
+# In another terminal: view and search
+less +F session.log
+```
+
+In `less`:
+- Press `Ctrl+C` to stop following and enter search mode
+- Search with `/pattern` (e.g., `/error`, `/function`)
+- Navigate with `n` (next) and `N` (previous)
+- Press `F` to resume following mode
+
+This lets you search the entire session history while Claude continues running.
 
 ## Integration with Logging Tools
 
@@ -146,37 +166,39 @@ Logged sessions:
 
 <!-- interactive-only -->
 ```console
-$ tui-delta run --profile claude_code -- claude code \
-  >> daily-$(date +%Y%m%d).log
+$ tui-delta into daily-$(date +%Y%m%d).log --profile claude_code -- claude code
 ```
+
+Note: To append rather than overwrite, manually append to the file after the session.
 
 ### Pipe to Analysis Tools
 
-!!! note "Output to terminal may garble display"
-    When piping to utilities like `grep`, `tail`, etc., their output to the terminal will likely compete with the TUI display, resulting in garbled output. Redirecting to a file or processing logs after the session completes avoids this issue.
-
-**Redirect output to avoid garbling:**
+**Process after session:**
 ```bash
-# Save to file during session
-tui-delta run --profile claude_code -- claude code | \
-  grep -i "error" > errors.log
+# Capture session first
+tui-delta into session.log --profile claude_code -- claude code
 
-# Or process log after session completes
-tui-delta run --profile claude_code -- claude code > session.log
+# Then analyze
 grep -i "error" session.log
 ```
 
-**Output to terminal (likely garbles display):**
+**Real-time filtering with named pipe:**
 ```bash
-# grep output competes with TUI display
-tui-delta run --profile claude_code -- claude code | grep -i "error"
+# Create pipe and filter in background
+mkfifo /tmp/claude-pipe
+grep -i "error" < /tmp/claude-pipe > errors.log &
+
+# Run session
+tui-delta into /tmp/claude-pipe --profile claude_code -- claude code
 ```
 
 ### Stream to Remote Logging
 
 ```bash
-# logger sends to syslog, not terminal
-tui-delta run --profile claude_code -- claude code | logger -t claude-code
+# Create pipe for syslog streaming
+mkfifo /tmp/claude-pipe
+logger -t claude-code < /tmp/claude-pipe &
+tui-delta into /tmp/claude-pipe --profile claude_code -- claude code
 ```
 
 ## Next Steps

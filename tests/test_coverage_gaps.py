@@ -257,11 +257,11 @@ class TestRunCoverage:
         """Test build_script_command for macOS."""
         from tui_delta.run import build_script_command
 
-        cmd = build_script_command(["echo", "test"], system="Darwin")
+        cmd = build_script_command(["echo", "test"], output_file="/tmp/test.log", system="Darwin")
         assert "script" in cmd
         assert "-q" in cmd
         assert "-F" in cmd
-        assert "/dev/stdout" in cmd
+        assert "/tmp/test.log" in cmd
         assert "echo" in cmd
         assert "test" in cmd
 
@@ -269,13 +269,13 @@ class TestRunCoverage:
         """Test build_script_command for Linux."""
         from tui_delta.run import build_script_command
 
-        cmd = build_script_command(["ls", "-la"], system="Linux")
+        cmd = build_script_command(["ls", "-la"], output_file="/tmp/test.log", system="Linux")
         assert "script" in cmd
         assert "--flush" in cmd
         assert "--quiet" in cmd
         assert "--return" in cmd
         assert "--command" in cmd
-        assert "/dev/stdout" in cmd
+        assert "/tmp/test.log" in cmd
         # Command is joined with shlex.join, so check the joined string
         assert "ls -la" in " ".join(cmd)
 

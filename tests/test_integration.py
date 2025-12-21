@@ -10,8 +10,12 @@ from tui_delta.run import build_pipeline_commands
 
 # Path to test fixtures
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
-REAL_CLAUDE_SESSION = FIXTURES_DIR / "real-claude-session.bin"
-REAL_CLAUDE_SESSION_EXPECTED = FIXTURES_DIR / "real-claude-session-expected-output.bin"
+REAL_CLAUDE_SESSION = FIXTURES_DIR / "real-claude-session-v2.0.31.bin"
+REAL_CLAUDE_SESSION_EXPECTED = FIXTURES_DIR / "real-claude-session-v2.0.31-expected-output.bin"
+REAL_CLAUDE_SESSION_V2_0_74 = FIXTURES_DIR / "real-claude-session-v2.0.74.bin"
+REAL_CLAUDE_SESSION_V2_0_74_EXPECTED = (
+    FIXTURES_DIR / "real-claude-session-v2.0.74-expected-output.bin"
+)
 
 
 @pytest.mark.integration
@@ -40,15 +44,18 @@ with open(fixture_path, "rb") as f:
         if not REAL_CLAUDE_SESSION.exists():
             pytest.skip(f"Real Claude Code session fixture not found: {REAL_CLAUDE_SESSION}")
 
-        # Capture stdout by redirecting in subprocess
+        # Capture output to file
+        output_file = tmp_path / "output.log"
         test_script = tmp_path / "test_runner.py"
         test_script.write_text(f'''
 import sys
+from pathlib import Path
 sys.path.insert(0, r"{Path(__file__).parent.parent / "src"}")
 from tui_delta.run import run_tui_with_pipeline
 
 exit_code = run_tui_with_pipeline(
-    command={mock_tui_command},
+    command_line={mock_tui_command},
+    output_file=Path(r"{output_file}"),
     profile="claude_code",
 )
 sys.exit(exit_code)
@@ -63,8 +70,9 @@ sys.exit(exit_code)
         # Verify pipeline completed successfully
         assert result.returncode == 0, f"Pipeline failed: {result.stderr.decode()}"
 
-        # Verify we got output
-        output = result.stdout
+        # Verify we got output in the file
+        assert output_file.exists(), "Output file was not created"
+        output = output_file.read_bytes()
         assert len(output) > 0, "Pipeline produced no output"
 
         # Verify output is reasonable (not just whitespace)
@@ -196,6 +204,121 @@ sys.exit(exit_code)
 
         # Load expected output
         expected_output = REAL_CLAUDE_SESSION_EXPECTED.read_bytes()
+
+        # Compare byte-for-byte
+        if actual_output != expected_output:
+            actual_lines = actual_output.decode("utf-8", errors="replace").splitlines()
+            expected_lines = expected_output.decode("utf-8", errors="replace").splitlines()
+
+            # Find first difference
+            for i, (actual_line, expected_line) in enumerate(zip(actual_lines, expected_lines)):
+                if actual_line != expected_line:
+                    pytest.fail(
+                        f"Output differs from golden file at line {i + 1}:\n"
+                        f"Expected: {expected_line[:100]!r}\n"
+                        f"Actual:   {actual_line[:100]!r}"
+                    )
+
+            # Different number of lines
+            if len(actual_lines) != len(expected_lines):
+                pytest.fail(
+                    f"Output has {len(actual_lines)} lines, expected {len(expected_lines)} lines"
+                )
+
+            pytest.fail("Output differs from golden file")
+
+    @pytest.mark.slow
+    def test_pipeline_golden_output_v2_0_74(self):
+        """Test pipeline output matches golden file for Claude Code v2.0.74.
+
+        This test verifies the complete pipeline produces exactly the expected
+        output for a real Claude Code v2.0.74 session.
+
+        Tests the pipeline components directly (not through run_tui_with_pipeline
+        which includes the `script` wrapper that may add extra control sequences).
+        """
+        if not REAL_CLAUDE_SESSION_V2_0_74.exists():
+            pytest.skip(
+                f"Real Claude Code v2.0.74 session fixture not found: {REAL_CLAUDE_SESSION_V2_0_74}"
+            )
+        if not REAL_CLAUDE_SESSION_V2_0_74_EXPECTED.exists():
+            pytest.skip(f"Golden output file not found: {REAL_CLAUDE_SESSION_V2_0_74_EXPECTED}")
+
+        # Read input
+        input_data = REAL_CLAUDE_SESSION_V2_0_74.read_bytes()
+
+        # Build pipeline matching run.py's build_pipeline_commands for claude_code profile
+        # Stage 1: clear_lines
+        clear_lines_proc = subprocess.Popen(
+            [
+                sys.executable,
+                "-m",
+                "tui_delta.clear_lines",
+                "--prefixes",
+                "--profile",
+                "claude_code",
+            ],
+            stdin=subprocess.PIPE,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+
+        # Stage 2: consolidate_clears
+        consolidate_proc = subprocess.Popen(
+            [sys.executable, "-m", "tui_delta.consolidate_clears"],
+            stdin=clear_lines_proc.stdout,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        clear_lines_proc.stdout.close()
+
+        # Stage 3: first uniqseq
+        uniqseq1_proc = subprocess.Popen(
+            [sys.executable, "-m", "uniqseq", "--track", r"^\+: ", "--quiet"],
+            stdin=consolidate_proc.stdout,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        consolidate_proc.stdout.close()
+
+        # Stage 4: cut -b 4- (strip prefix)
+        cut_proc = subprocess.Popen(
+            [sys.executable, "-c", "import sys; [print(line[3:], end='') for line in sys.stdin]"],
+            stdin=uniqseq1_proc.stdout,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        uniqseq1_proc.stdout.close()
+
+        # Stage 5: final uniqseq
+        uniqseq2_proc = subprocess.Popen(
+            [
+                sys.executable,
+                "-m",
+                "uniqseq",
+                "--track",
+                r"^\S",
+                "--quiet",
+                "--max-history",
+                "5",
+                "--window-size",
+                "1",
+                "--max-unique-sequences",
+                "0",
+            ],
+            stdin=cut_proc.stdout,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        cut_proc.stdout.close()
+
+        # Feed input and get output
+        clear_lines_proc.stdin.write(input_data)
+        clear_lines_proc.stdin.close()
+        actual_output, _ = uniqseq2_proc.communicate(timeout=60)
+
+        # Load expected output
+        expected_output = REAL_CLAUDE_SESSION_V2_0_74_EXPECTED.read_bytes()
 
         # Compare byte-for-byte
         if actual_output != expected_output:

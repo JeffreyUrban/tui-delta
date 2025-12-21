@@ -37,7 +37,7 @@ profiles:
 Pass the custom profile file with `--rules-file`:
 
 ```bash
-tui-delta run --rules-file my-profiles.yaml --profile test_profile -- <command>
+tui-delta into out.log --rules-file my-rules.yaml --profile test -- <command>
 ```
 
 ## Profile Fields
@@ -110,11 +110,40 @@ The `normalization_patterns` section uses [patterndb-yaml](https://patterndb-yam
 Test on your actual TUI application:
 
 ```console
-$ tui-delta run --rules-file my-profile.yaml --profile my_custom \
-  -- ./myapp | less -R
+$ tui-delta into out.log --rules-file my-rules.yaml --profile custom -- ./myapp
+$ less -R out.log
 ```
 
 Check output looks correct and adjust protections or patterns as needed.
+
+### Debugging with Stage Outputs
+
+Use `--stage-outputs` to examine how each pipeline stage processes your TUI's output:
+
+<!-- interactive-only -->
+```console
+$ tui-delta into out.log --stage-outputs \
+    --rules-file my-rules.yaml --profile custom -- ./myapp
+```
+
+This creates files showing output at each stage:
+- `out.log-0-script.bin` - Raw output with escape sequences
+- `out.log-1-clear_lines.bin` - After clear detection
+- `out.log-2-consolidate.bin` - After consolidation
+- And more...
+
+Decode escape sequences to readable text:
+
+<!-- interactive-only -->
+```console
+$ tui-delta decode-escapes out.log-0-script.bin
+```
+
+This helps you understand:
+- Which lines are being cleared
+- How consolidation deduplicates content
+- Whether your normalization patterns are matching
+- Where adjustments to your profile are needed
 
 For AI assistants like Claude Code, see [AI Assistant Logging](../use-cases/ai-assistants/ai-assistants.md).
 
