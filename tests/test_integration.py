@@ -10,8 +10,8 @@ from tui_delta.run import build_pipeline_commands
 
 # Path to test fixtures
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
-REAL_CLAUDE_SESSION = FIXTURES_DIR / "real-claude-session.bin"
-REAL_CLAUDE_SESSION_EXPECTED = FIXTURES_DIR / "real-claude-session-expected-output.bin"
+REAL_CLAUDE_SESSION = FIXTURES_DIR / "real-claude-session-v2.0.31.bin"
+REAL_CLAUDE_SESSION_EXPECTED = FIXTURES_DIR / "real-claude-session-v2.0.31-expected-output.bin"
 
 
 @pytest.mark.integration

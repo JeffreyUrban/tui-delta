@@ -10,8 +10,8 @@ from pathlib import Path
 
 # Paths
 FIXTURES_DIR = Path(__file__).parent / "fixtures"
-REAL_CLAUDE_SESSION = FIXTURES_DIR / "real-claude-session.bin"
-GOLDEN_OUTPUT = FIXTURES_DIR / "real-claude-session-expected.txt"
+REAL_CLAUDE_SESSION = FIXTURES_DIR / "real-claude-session-v2.0.31.bin"
+GOLDEN_OUTPUT = FIXTURES_DIR / "real-claude-session-v2.0.31-expected.txt"
 
 # Read fixture data
 fixture_data = REAL_CLAUDE_SESSION.read_bytes()
