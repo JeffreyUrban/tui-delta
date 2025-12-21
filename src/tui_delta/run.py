@@ -84,7 +84,7 @@ def build_pipeline_commands(
     pipeline: list[list[str]] = []
 
     # Step 1: clear_lines --prefixes
-    clear_cmd = [sys.executable, "-m", "tui_delta.clear_lines", "--prefixes"]
+    clear_cmd = [sys.executable, "-u", "-m", "tui_delta.clear_lines", "--prefixes"]
     if profile:
         clear_cmd.extend(["--profile", profile])
     if rules_file:
@@ -92,12 +92,13 @@ def build_pipeline_commands(
     pipeline.append(clear_cmd)
 
     # Step 2: consolidate_clears
-    consolidate_cmd = [sys.executable, "-m", "tui_delta.consolidate_clears"]
+    consolidate_cmd = [sys.executable, "-u", "-m", "tui_delta.consolidate_clears"]
     pipeline.append(consolidate_cmd)
 
     # Step 3: uniqseq --track '^\+: ' --quiet
     uniqseq1_cmd = [
         sys.executable,
+        "-u",
         "-m",
         "uniqseq",
         "--track",
@@ -109,7 +110,13 @@ def build_pipeline_commands(
     # Step 4: cut -b 4- (strip prefix)
     # Using Python one-liner to strip first 4 characters
     # Use end='' to avoid adding extra newlines (stdin lines already have them)
-    cut_cmd = [sys.executable, "-c", "import sys; [print(line[3:], end='') for line in sys.stdin]"]
+    # Use -u for unbuffered output to prevent buffering in the pipeline
+    cut_cmd = [
+        sys.executable,
+        "-u",
+        "-c",
+        "import sys; [print(line[3:], end='') for line in sys.stdin]",
+    ]
     pipeline.append(cut_cmd)
 
     # Step 5 (optional): additional_pipeline from profile
@@ -174,6 +181,10 @@ def run_tui_with_pipeline(
                 processes: list[subprocess.Popen[bytes]] = []
                 current_stdin: object = fifo  # file object for first command
 
+                # Set PYTHONUNBUFFERED for all processes to ensure real-time output
+                env = os.environ.copy()
+                env["PYTHONUNBUFFERED"] = "1"
+
                 # Chain pipeline commands
                 for cmd in pipeline_cmds:
                     proc = subprocess.Popen(
@@ -181,6 +192,7 @@ def run_tui_with_pipeline(
                         stdin=current_stdin,  # type: ignore
                         stdout=subprocess.PIPE,
                         stderr=subprocess.PIPE,
+                        env=env,
                     )
                     processes.append(proc)
                     current_stdin = proc.stdout
