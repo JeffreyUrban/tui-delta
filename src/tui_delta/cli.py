@@ -106,6 +106,19 @@ def into(
     Pipeline:
         clear_lines → consolidate → uniqseq → cut → uniqseq
     """
+    # Validate profile if specified
+    if profile:
+        from .clear_rules import ClearRules
+
+        available_profiles = ClearRules.list_profiles(rules_file)
+        if profile not in available_profiles:
+            console.print(
+                f"[red]Error:[/red] Profile '{profile}' not found.\n"
+                f"Available profiles: {', '.join(sorted(available_profiles.keys()))}\n"
+                f"Use 'tui-delta list-profiles' to see descriptions."
+            )
+            raise typer.Exit(1)
+
     exit_code = run_tui_with_pipeline(
         command_line=command_line,
         output_file=output_file,
