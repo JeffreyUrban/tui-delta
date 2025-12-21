@@ -284,7 +284,7 @@ def _print_prefixed_line(
             console.print(text)
     else:
         # Plain stdout
-        print(f"{prefix}{line}")
+        print(f"{prefix}{line}", flush=True)
 
 
 def _extract_sequence_block(
@@ -446,7 +446,7 @@ def output_diff(
     # If current block has no sequence but we have buffered sequence, output it first
     if not curr_seq and buffered_choices:
         for seq_prefix, seq_line in buffered_choices:
-            print(f"{seq_prefix}{seq_line}")
+            print(f"{seq_prefix}{seq_line}", flush=True)
 
     # Use the non-sequence portions for diff (already normalized)
     prev_lines = prev_non_seq
@@ -517,7 +517,7 @@ def _output_first_cleared_block(
 
     # Output non-sequence content
     for cleared_line in non_sequence:
-        print(f"{current_prefix}{cleared_line}")
+        print(f"{current_prefix}{cleared_line}", flush=True)
 
     # Buffer sequence if any
     if sequence:
@@ -638,7 +638,7 @@ def main(
             if line_type == LineType.COMMAND:
                 # Output command line immediately without breaking cleared sequence
                 # This allows consolidation to continue across command line boundaries
-                print(line)
+                print(line, flush=True)
                 continue
 
             if line_type == LineType.KEPT:
@@ -662,7 +662,7 @@ def main(
                     current_cleared_block = []
 
                 # Output kept line
-                print(line)
+                print(line, flush=True)
 
             else:  # Cleared line (backslash or slash)
                 # Determine prefix for this cleared block
