@@ -139,6 +139,7 @@ def run_tui_with_pipeline(
     output_file: Path,
     profile: Optional[str] = None,
     rules_file: Optional[Path] = None,
+    stage_outputs: bool = False,
 ) -> int:
     """
     Run a TUI application with real-time delta processing.
@@ -152,6 +153,7 @@ def run_tui_with_pipeline(
         output_file: File to write processed deltas (can be a named pipe)
         profile: Clear rules profile
         rules_file: Custom rules YAML file
+        stage_outputs: If True, save output from each stage to output_file-N-stage.bin
 
     Returns:
         Exit code from the TUI application
@@ -185,8 +187,25 @@ def run_tui_with_pipeline(
                 env = os.environ.copy()
                 env["PYTHONUNBUFFERED"] = "1"
 
+                # Stage names for debug output
+                stage_names = ["script", "clear_lines", "consolidate", "uniqseq", "cut"]
+                if len(pipeline_cmds) > 4:  # Has additional_pipeline
+                    stage_names.append("additional")
+
+                # Add tee for stage 0 (script output) if stage_outputs enabled
+                if stage_outputs:
+                    stage_file = f"{output_file}-0-script.bin"
+                    tee_proc = subprocess.Popen(
+                        ["tee", stage_file],
+                        stdin=current_stdin,  # type: ignore
+                        stdout=subprocess.PIPE,
+                        stderr=subprocess.PIPE,
+                    )
+                    processes.append(tee_proc)
+                    current_stdin = tee_proc.stdout
+
                 # Chain pipeline commands
-                for cmd in pipeline_cmds:
+                for i, cmd in enumerate(pipeline_cmds):
                     proc = subprocess.Popen(
                         cmd,
                         stdin=current_stdin,  # type: ignore
@@ -196,6 +215,19 @@ def run_tui_with_pipeline(
                     )
                     processes.append(proc)
                     current_stdin = proc.stdout
+
+                    # Add tee for this stage's output if stage_outputs enabled
+                    if stage_outputs and i < len(stage_names) - 1:
+                        stage_num = i + 1  # +1 because stage 0 is script
+                        stage_file = f"{output_file}-{stage_num}-{stage_names[stage_num]}.bin"
+                        tee_proc = subprocess.Popen(
+                            ["tee", stage_file],
+                            stdin=current_stdin,  # type: ignore
+                            stdout=subprocess.PIPE,
+                            stderr=subprocess.PIPE,
+                        )
+                        processes.append(tee_proc)
+                        current_stdin = tee_proc.stdout
 
                 # Read from final process and write to output file
                 if current_stdin and current_stdin != fifo:

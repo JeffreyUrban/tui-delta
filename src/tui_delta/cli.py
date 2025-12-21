@@ -73,6 +73,11 @@ def into(
         exists=True,
         dir_okay=False,
     ),
+    stage_outputs: bool = typer.Option(
+        False,
+        "--stage-outputs",
+        help="Save output from each pipeline stage to OUTPUT-FILE-N-stage.bin",
+    ),
 ) -> None:
     """
     Run a TUI application and pipe processed output into a file.
@@ -124,6 +129,7 @@ def into(
         output_file=output_file,
         profile=profile,
         rules_file=rules_file,
+        stage_outputs=stage_outputs,
     )
     raise typer.Exit(exit_code)
 
@@ -150,6 +156,49 @@ def list_profiles_cmd(
     console.print("[bold]Available profiles:[/bold]")
     for name, description in profiles.items():
         console.print(f"  [cyan]{name}[/cyan]: {description}")
+
+
+@app.command(name="decode-escapes")
+def decode_escapes_cmd(
+    input_file: Path = typer.Argument(
+        ...,  # type: ignore[arg-type]  # Ellipsis is valid Typer syntax for required args
+        help="Input file with escape sequences",
+        exists=True,
+        dir_okay=False,
+        metavar="INPUT-FILE",
+    ),
+    output_file: Optional[Path] = typer.Argument(
+        None,
+        help="Output file (default: stdout)",
+        metavar="OUTPUT-FILE",
+    ),
+) -> None:
+    """
+    Decode escape control sequences to readable text.
+
+    Converts control sequences like clear-line, cursor movement, and window title
+    to readable text markers like [clear_line], [cursor_up], [window-title:...].
+
+    Color and formatting sequences (SGR) are passed through unchanged.
+
+    \b
+    Examples:
+        # Decode to stdout
+        tui-delta decode-escapes session.log-0-script.bin
+
+        # Decode to file
+        tui-delta decode-escapes session.log-0-script.bin decoded.txt
+
+        # Pipe to less for viewing
+        tui-delta decode-escapes session.log-0-script.bin | less -R
+    """
+    from .escape_decoder import decode_file
+
+    try:
+        decode_file(input_file, output_file)
+    except Exception as e:
+        console.print(f"[red]Error:[/red] {e}")
+        raise typer.Exit(1) from e
 
 
 if __name__ == "__main__":
