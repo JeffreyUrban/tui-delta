@@ -7,8 +7,55 @@
 #   - additional_pipeline: Optional shell command for additional processing
 
 profiles:
+  # Latest Claude Code version (currently v2.0.74)
   claude_code:
-    description: "Claude Code terminal UI (claude.ai/code)"
+    description: "Claude Code terminal UI v2.0.74 (claude.ai/code)"
+    clear_protections:
+      - blank_boundary
+      - user_input_final
+    normalization_patterns:
+      - dialog_question
+      - task_todos_time_tokens_down
+      - task_todos
+      - activity_time_tokens_down
+      - activity_spinner_thinking
+      - activity_spinner_thought
+      - activity_spinner
+      - thinking
+      - action
+      - search_prompts
+      - user_input
+      # Catch-all patterns LAST to handle unknown future states
+      - task_todos_unknown
+      - activity_spinner_unknown
+    additional_pipeline: "uniqseq --track '^\\S' --quiet --max-history 5 --window-size 1 --max-unique-sequences 0"
+
+  # Claude Code v2.0.74 (inline thinking indicator)
+  claude_code_v2_0_74:
+    description: "Claude Code terminal UI v2.0.74 (claude.ai/code)"
+    clear_protections:
+      - blank_boundary
+      - user_input_final
+    normalization_patterns:
+      - dialog_question
+      - task_todos_time_tokens_down
+      - task_todos
+      - activity_time_tokens_down
+      - activity_spinner_thinking
+      - activity_spinner_thought
+      - activity_spinner
+      - thinking
+      - action
+      - search_prompts
+      - user_input
+      # Catch-all patterns LAST to handle unknown future states
+      - task_todos_unknown
+      - activity_spinner_unknown
+    additional_pipeline: "uniqseq --track '^\\S' --quiet --max-history 5 --window-size 1 --max-unique-sequences 0"
+
+  # Claude Code v2.0.31 (separate thinking line)
+  claude_code_v2_0_31:
+    description: "Claude Code terminal UI v2.0.31 (claude.ai/code)"
     clear_protections:
       - blank_boundary
       - user_input_final
@@ -210,6 +257,19 @@ patterns:
       - text: ")"
     output: "[activity-unknown:{verb}]"
 
+  # Activity spinner with inline thinking indicator (Claude Code v2.0.74)
+  # Example: "✢ Schlepping… (esc to interrupt · thinking)"
+  # Works with any verb (Schlepping, Slithering, Manifesting, etc.)
+  activity_spinner_thinking:
+    description: "Activity with inline thinking indicator"
+    pattern:
+      - char: "·✢✳✶✻✽"
+      - text: " "
+      - field: verb
+      - text: "ing"
+      - text: "… (esc to interrupt · thinking)"
+    output: "[activity-thinking:{verb}]"
+
   # Thinking indicator
   # Example: "∴ Thought for 5s (ctrl+o to show thinking)"
   thinking:
@@ -259,3 +319,13 @@ patterns:
       - serialized: "\u00a0"
       - field: input
     output: "[user-input]"
+
+  # Search prompts typing (Claude Code v2.0.74)
+  # Example: "  search prompts: pick"
+  # Deduplicates character-by-character typing in search mode
+  search_prompts:
+    description: "Search prompts typing indicator"
+    pattern:
+      - text: "  search prompts: "
+      - field: query
+    output: "[search-prompts]"
