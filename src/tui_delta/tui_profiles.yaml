@@ -28,7 +28,7 @@ profiles:
       # Catch-all patterns LAST to handle unknown future states
       - task_todos_unknown
       - activity_spinner_unknown
-    additional_pipeline: "uniqseq --track '^\\S' --quiet --max-history 5 --window-size 1 --max-unique-sequences 0"
+    additional_pipeline: "uniqseq --track '^\\S' --quiet --max-history 5 --window-size 1 --max-unique-sequences 0 --hash-transform 'sed \"s/\\x1b\\[[0-9;]*[a-zA-Z]//g\"'"
 
   # Claude Code v2.0.74 (inline thinking indicator)
   claude_code_v2_0_74:
@@ -51,7 +51,7 @@ profiles:
       # Catch-all patterns LAST to handle unknown future states
       - task_todos_unknown
       - activity_spinner_unknown
-    additional_pipeline: "uniqseq --track '^\\S' --quiet --max-history 5 --window-size 1 --max-unique-sequences 0"
+    additional_pipeline: "uniqseq --track '^\\S' --quiet --max-history 5 --window-size 1 --max-unique-sequences 0 --hash-transform 'sed \"s/\\x1b\\[[0-9;]*[a-zA-Z]//g\"'"
 
   # Claude Code v2.0.31 (separate thinking line)
   claude_code_v2_0_31:
@@ -72,7 +72,7 @@ profiles:
       # Catch-all patterns LAST to handle unknown future states
       - task_todos_unknown
       - activity_spinner_unknown
-    additional_pipeline: "uniqseq --track '^\\S' --quiet --max-history 5 --window-size 1 --max-unique-sequences 0"
+    additional_pipeline: "uniqseq --track '^\\S' --quiet --max-history 5 --window-size 1 --max-unique-sequences 0 --hash-transform 'sed \"s/\\x1b\\[[0-9;]*[a-zA-Z]//g\"'"
 
   generic:
     description: "Generic TUI with only universal rules"

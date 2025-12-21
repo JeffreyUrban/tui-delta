@@ -374,10 +374,18 @@ def _extract_sequence_block(
 
 
 def normalize(norm_engine: Optional[PatterndbYaml], lines: list[str]) -> list[str]:  # type: ignore[valid-type]
-    """Normalize lines using optimized batch API (no StringIO overhead)."""
+    """
+    Normalize lines for comparison.
+
+    Strips ANSI codes before normalization so patterns can match correctly.
+    The returned normalized versions are only used for diff comparison - the
+    original lines with ANSI codes are preserved and used for output.
+    """
     if norm_engine is None:
         return lines
-    return norm_engine.normalize_lines(lines)  # type: ignore[no-any-return]
+    # Strip ANSI codes before normalization so patterns can match
+    stripped_lines = [ANSI_RE.sub("", line) for line in lines]
+    return norm_engine.normalize_lines(stripped_lines)  # type: ignore[no-any-return]
 
 
 def output_diff(
