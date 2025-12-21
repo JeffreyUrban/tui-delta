@@ -137,3 +137,4 @@ src/tui_delta/_version.py
 # Claude Code local settings
 .claude/settings.local.json
 docs/examples/fixtures/*.log
+docs/examples/fixtures/*.bin

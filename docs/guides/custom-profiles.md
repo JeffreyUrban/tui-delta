@@ -120,8 +120,10 @@ Check output looks correct and adjust protections or patterns as needed.
 
 Use `--stage-outputs` to examine how each pipeline stage processes your TUI's output:
 
+<!-- interactive-only -->
 ```console
-$ tui-delta into out.log --stage-outputs --rules-file my-rules.yaml --profile custom -- ./myapp
+$ tui-delta into out.log --stage-outputs \
+    --rules-file my-rules.yaml --profile custom -- ./myapp
 ```
 
 This creates files showing output at each stage:
@@ -132,6 +134,7 @@ This creates files showing output at each stage:
 
 Decode escape sequences to readable text:
 
+<!-- interactive-only -->
 ```console
 $ tui-delta decode-escapes out.log-0-script.bin
 ```

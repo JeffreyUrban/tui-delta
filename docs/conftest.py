@@ -407,8 +407,11 @@ def pytest_sessionfinish(session, exitstatus):
         "job-stats.json",
         "*-stats.json",
         "session-*.log",  # Timestamped session logs
+        "session.log",  # Non-timestamped session logs
         "daily-*.log",  # Daily logs
         "full-session.log",  # Debug logs
+        "out.log",  # Simple output log files
+        "*.log-*.bin",  # Stage output files (e.g., out.log-0-script.bin)
     ]
     for pattern in transient_patterns:
         for fixtures_dir in docs_dir.rglob("fixtures"):

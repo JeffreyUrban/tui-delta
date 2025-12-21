@@ -113,12 +113,14 @@ Start with `generic` profile for non-Claude-Code applications, then customize as
 If you need to understand how tui-delta processes output or debug pipeline issues:
 
 **Capture stage outputs:**
+<!-- interactive-only -->
 ```console
-$ tui-delta into session.log --stage-outputs --profile claude_code -- claude code
-# Creates: session.log-0-script.bin, session.log-1-clear_lines.bin, etc.
+$ tui-delta into out.log --stage-outputs --profile claude_code -- claude
+# Creates: out.log-0-script.bin, out.log-1-clear_lines.bin, etc.
 ```
 
 **Decode escape sequences:**
+<!-- interactive-only -->
 ```console
 $ tui-delta decode-escapes session.log-0-script.bin
 # Shows readable text like [clear_line] instead of escape codes

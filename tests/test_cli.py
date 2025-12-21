@@ -224,3 +224,126 @@ def test_pipeline_stdin_to_stdout():
     assert b"line1" in result.stdout
     assert b"line2" in result.stdout
     assert b"line3" in result.stdout
+
+
+@pytest.mark.integration
+def test_stage_outputs_option(tmp_path):
+    """Test --stage-outputs option creates stage output files."""
+    output_file = tmp_path / "output.log"
+
+    # Run with --stage-outputs
+    result = runner.invoke(
+        app,
+        ["into", str(output_file), "--profile", "minimal", "--stage-outputs", "--", "echo", "test"],
+        env=TEST_ENV,
+    )
+
+    # Should run without Python errors
+    assert "Traceback" not in result.stdout
+
+    # Check that stage output files were created
+    # Stage files: output.log-0-script.bin, output.log-1-clear_lines.bin, etc.
+    expected_stages = [
+        "0-script.bin",
+        "1-clear_lines.bin",
+        "2-consolidate.bin",
+        "3-uniqseq.bin",
+        "4-cut.bin",
+    ]
+
+    for stage in expected_stages:
+        stage_file = Path(f"{output_file}-{stage}")
+        assert stage_file.exists(), f"Stage file {stage_file} should exist"
+
+
+@pytest.mark.unit
+def test_stage_outputs_help():
+    """Test --stage-outputs option appears in help."""
+    result = runner.invoke(app, ["into", "--help"], env=TEST_ENV)
+    assert result.exit_code == 0
+    output = strip_ansi(result.stdout.lower())
+    assert "stage-outputs" in output or "stage outputs" in output
+
+
+@pytest.mark.unit
+def test_decode_escapes_command_help():
+    """Test decode-escapes command help."""
+    result = runner.invoke(app, ["decode-escapes", "--help"], env=TEST_ENV)
+    assert result.exit_code == 0
+    output = strip_ansi(result.stdout.lower())
+    assert "escape" in output or "control" in output
+
+
+@pytest.mark.integration
+def test_decode_escapes_basic(tmp_path):
+    """Test decode-escapes command with basic input."""
+    # Create test input file with ANSI escape sequences
+    input_file = tmp_path / "input.bin"
+    output_file = tmp_path / "output.txt"
+
+    # Write file with escape sequences (clear line sequence)
+    test_content = b"line1\n\x1b[2Kline2\n"
+    input_file.write_bytes(test_content)
+
+    # Run decode-escapes
+    result = runner.invoke(
+        app,
+        ["decode-escapes", str(input_file), str(output_file)],
+        env=TEST_ENV,
+    )
+
+    assert result.exit_code == 0
+    assert output_file.exists()
+
+    # Output should have decoded escape sequences
+    decoded = output_file.read_text()
+    assert "[clear_line]" in decoded
+    assert "line1" in decoded
+    assert "line2" in decoded
+
+
+@pytest.mark.integration
+def test_decode_escapes_to_stdout(tmp_path):
+    """Test decode-escapes outputs to stdout when no output file specified."""
+    input_file = tmp_path / "input.bin"
+
+    # Write file with window title escape sequence
+    test_content = b"\x1b]0;Test Title\x07text\n"
+    input_file.write_bytes(test_content)
+
+    # Run decode-escapes without output file
+    result = runner.invoke(
+        app,
+        ["decode-escapes", str(input_file)],
+        env=TEST_ENV,
+    )
+
+    assert result.exit_code == 0
+    # Output should be in stdout
+    assert "window-title" in result.stdout.lower() or "test title" in result.stdout.lower()
+
+
+@pytest.mark.unit
+def test_decode_escapes_preserves_colors(tmp_path):
+    """Test decode-escapes preserves ANSI color codes."""
+    input_file = tmp_path / "input.bin"
+    output_file = tmp_path / "output.txt"
+
+    # Write file with color codes and control sequences
+    test_content = b"\x1b[31mred text\x1b[0m\x1b[2K"
+    input_file.write_bytes(test_content)
+
+    result = runner.invoke(
+        app,
+        ["decode-escapes", str(input_file), str(output_file)],
+        env=TEST_ENV,
+    )
+
+    assert result.exit_code == 0
+    decoded = output_file.read_text()
+
+    # Should have color codes preserved
+    assert "\x1b[31m" in decoded
+    assert "\x1b[0m" in decoded
+    # Should have control sequence decoded
+    assert "[clear_line]" in decoded

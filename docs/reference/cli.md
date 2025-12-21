@@ -57,8 +57,8 @@ $ tui-delta into /tmp/my-pipe --profile claude_code -- claude
 Capture pipeline stage outputs for debugging:
 
 ```console
-$ tui-delta into session.log --stage-outputs --profile claude_code -- claude code
-# Creates: session.log-0-script.bin, session.log-1-clear_lines.bin, etc.
+$ tui-delta into out.log --stage-outputs --profile claude_code -- claude
+# Creates: out.log-0-script.bin, out.log-1-clear_lines.bin, etc.
 ```
 
 **Pipeline:**
@@ -131,8 +131,8 @@ $ tui-delta decode-escapes session.log-0-script.bin | less -R
 Examine raw script output with decoded escapes:
 
 ```console
-$ tui-delta into session.log --stage-outputs --profile claude_code -- claude code
-$ tui-delta decode-escapes session.log-0-script.bin
+$ tui-delta into out.log --stage-outputs --profile claude_code -- claude
+$ tui-delta decode-escapes out.log-0-script.bin
 ```
 
 **Decoded sequences:**
