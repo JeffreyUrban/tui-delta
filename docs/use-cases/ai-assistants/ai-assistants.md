@@ -97,7 +97,7 @@ Keep records of AI-assisted development sessions:
 
 <!-- interactive-only -->
 ```console
-$ tui-delta into "session-$(date +%Y%m%d-%H%M%S).log" --profile claude_code -- claude code
+$ tui-delta into "$(date +%Y%m%d).log" --profile claude_code -- claude code
 ```
 
 Creates timestamped log files for each session.

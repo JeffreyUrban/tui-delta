@@ -154,7 +154,7 @@ $ cat /tmp/pipe | your-tool > final.txt
 The `script` command used by tui-delta respects terminal size. Set `COLUMNS` and `LINES` for consistent output:
 
 ```console
-$ COLUMNS=120 LINES=40 tui-delta into session.log --profile claude_code -- claude
+$ COLUMNS=120 LINES=40 tui-delta into s.log --profile claude_code -- claude
 ```
 
 ## Next Steps

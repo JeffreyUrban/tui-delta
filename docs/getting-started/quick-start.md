@@ -28,7 +28,7 @@ pip install tui-delta
 To understand how tui-delta works, you can test with simple commands:
 
 ```bash
-printf "line1\nline2\nline3\n" | tui-delta into /tmp/output.txt --profile minimal -- cat
+echo "test" | tui-delta into /tmp/output.log --profile minimal -- cat
 ```
 
 The `minimal` profile passes input through with minimal processing.
