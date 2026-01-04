@@ -11,11 +11,13 @@ pip install tui-delta
 ## Quick Start
 
 ```python
+from pathlib import Path
 from tui_delta import run_tui_with_pipeline
 
 # Run a TUI application with delta processing
 exit_code = run_tui_with_pipeline(
-    command=["echo", "Hello, World!"],
+    command_line=["echo", "Hello, World!"],
+    output_file=Path("output.log"),
     profile="minimal"
 )
 
